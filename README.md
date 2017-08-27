@@ -81,6 +81,8 @@ That's it! With the level bumped up a little you will see log output like:
 [22:14:45.741 DBG] Handled. Status code: 304 File: /css/site.css
 ```
 
+Tip: to see Serilog output in the Visual Studio output window when running under IIS, select _ASP.NET Core Web Server_ from the _Show output from_ drop-down list.
+
 ### Using the package
 
 With _Serilog.AspNetCore_ installed and configured, you can write log messages directly through Serilog or any `ILogger` interface injected by ASP.NET. All loggers will use the same underlying implementation, levels, and destinations.
