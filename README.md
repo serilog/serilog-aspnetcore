@@ -5,12 +5,11 @@ Serilog logging for ASP.NET Core. This package routes ASP.NET Core log messages 
 
 ### Instructions
 
-**First**, install the _Serilog.AspNetCore_ [NuGet package](https://www.nuget.org/packages/Serilog.AspNetCore) into your app. You will need a way to view the log messages - _Serilog.Sinks.Console_ writes these to the console, and _Serilog.Sinks.Debug_ writes to the Visual Studio output window; there are [many more sinks available](https://www.nuget.org/packages?q=Tags%3A%22serilog%22) on NuGet.
+**First**, install the _Serilog.AspNetCore_ [NuGet package](https://www.nuget.org/packages/Serilog.AspNetCore) into your app. You will need a way to view the log messages - _Serilog.Sinks.Console_ writes these to the console; there are [many more sinks available](https://www.nuget.org/packages?q=Tags%3A%22serilog%22) on NuGet.
 
 ```powershell
 Install-Package Serilog.AspNetCore -DependencyVersion Highest
 Install-Package Serilog.Sinks.Console
-Install-Package Serilog.Sinks.Debug
 ```
 
 **Next**, in your application's _Program.cs_ file, configure Serilog first:
