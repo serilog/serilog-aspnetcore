@@ -62,7 +62,7 @@ Then, add `UseSerilog()` to the web host builder. A `try`/`catch` block will ens
 **Finally**, clean up by removing the remaining configuration for the default logger:
 
  * Remove calls to `AddLogging()`
- * Remove the `"Logging"` section from _appsettings.json_ files (this can be replaced with [Serilog configuration](https://github.com/serilog/serilog-settings-configuration) as shown in [this example](), if required)
+ * Remove the `"Logging"` section from _appsettings.json_ files (this can be replaced with [Serilog configuration](https://github.com/serilog/serilog-settings-configuration) as shown in [this example](https://github.com/serilog/serilog-aspnetcore/blob/dev/samples/SimpleWebSample/Program.cs), if required)
  * Remove `ILoggerFactory` parameters and any `Add*()` calls on the logger factory in _Startup.cs_
  * Remove `UseApplicationInsights()` (this can be replaced with the [Serilog AI sink](https://github.com/serilog/serilog-sinks-applicationinsights), if required)
 
