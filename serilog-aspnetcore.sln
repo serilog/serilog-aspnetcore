@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.10
+VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A1893BD1-333D-4DFE-A0F0-DDBB2FE526E0}"
 EndProject
@@ -24,6 +24,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.AspNetCore", "src\S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.AspNetCore.Tests", "test\Serilog.AspNetCore.Tests\Serilog.AspNetCore.Tests.csproj", "{AD51759B-CD58-473F-9620-0B0E56A123A1}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleWebSampleV2", "samples\SimpleWebSampleV2\SimpleWebSampleV2.csproj", "{2711EC78-7F7D-440B-A8AB-BA3D32227667}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,6 +44,10 @@ Global
 		{AD51759B-CD58-473F-9620-0B0E56A123A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD51759B-CD58-473F-9620-0B0E56A123A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD51759B-CD58-473F-9620-0B0E56A123A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2711EC78-7F7D-440B-A8AB-BA3D32227667}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2711EC78-7F7D-440B-A8AB-BA3D32227667}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2711EC78-7F7D-440B-A8AB-BA3D32227667}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2711EC78-7F7D-440B-A8AB-BA3D32227667}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -50,6 +56,7 @@ Global
 		{69F9A0ED-7910-4F33-8919-28BB05376FBC} = {F2407211-6043-439C-8E06-3641634332E7}
 		{0549D23F-986B-4FB2-BACE-16FD7A7BC9EF} = {A1893BD1-333D-4DFE-A0F0-DDBB2FE526E0}
 		{AD51759B-CD58-473F-9620-0B0E56A123A1} = {E30F638E-BBBE-4AD1-93CE-48CC69CFEFE1}
+		{2711EC78-7F7D-440B-A8AB-BA3D32227667} = {F2407211-6043-439C-8E06-3641634332E7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {811E61C5-3871-4633-AFAE-B35B619C8A10}

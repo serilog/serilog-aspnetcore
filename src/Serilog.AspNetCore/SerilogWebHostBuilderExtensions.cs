@@ -41,5 +41,25 @@ namespace Serilog
                 collection.AddSingleton<ILoggerFactory>(new SerilogLoggerFactory(logger, dispose)));
             return builder;
         }
+
+        /// <summary>Sets Serilog as the logging provider.</summary>
+        /// <param name="builder">The web host builder to configure.</param>
+        /// <param name="configureSerilog">The delegate for configuring the <see cref="LoggerConfiguration" /> that will be used to construct a <see cref="Logger" />.</param>
+        /// <returns>The web host builder.</returns>
+        public static IWebHostBuilder UseSerilog(this IWebHostBuilder builder, Action<WebHostBuilderContext, LoggerConfiguration> configureSerilog)
+        {
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+            if (configureSerilog == null) throw new ArgumentNullException(nameof(configureSerilog));
+            builder.ConfigureServices
+            (
+                (context, collection) =>
+                {
+                    var loggerConfiguration = new LoggerConfiguration();
+                    configureSerilog(context, loggerConfiguration);
+                    collection.AddSingleton<ILoggerFactory>(new SerilogLoggerFactory(loggerConfiguration.CreateLogger(), true));
+                }
+            );
+            return builder;
+        }
     }
 }
