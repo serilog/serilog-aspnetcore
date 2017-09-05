@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.10
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A1893BD1-333D-4DFE-A0F0-DDBB2FE526E0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{E30F638E-BBBE-4AD1-93CE-48CC69CFEFE1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{F2407211-6043-439C-8E06-3641634332E7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{9C21B9DF-AEDD-4AA6-BEA4-912DEF3E5B8E}"
+	ProjectSection(SolutionItems) = preProject
+		appveyor.yml = appveyor.yml
+		Build.ps1 = Build.ps1
+		global.json = global.json
+		README.md = README.md
+		assets\Serilog.snk = assets\Serilog.snk
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleWebSample", "samples\SimpleWebSample\SimpleWebSample.csproj", "{69F9A0ED-7910-4F33-8919-28BB05376FBC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.AspNetCore", "src\Serilog.AspNetCore\Serilog.AspNetCore.csproj", "{0549D23F-986B-4FB2-BACE-16FD7A7BC9EF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.AspNetCore.Tests", "test\Serilog.AspNetCore.Tests\Serilog.AspNetCore.Tests.csproj", "{AD51759B-CD58-473F-9620-0B0E56A123A1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{69F9A0ED-7910-4F33-8919-28BB05376FBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69F9A0ED-7910-4F33-8919-28BB05376FBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69F9A0ED-7910-4F33-8919-28BB05376FBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69F9A0ED-7910-4F33-8919-28BB05376FBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0549D23F-986B-4FB2-BACE-16FD7A7BC9EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0549D23F-986B-4FB2-BACE-16FD7A7BC9EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0549D23F-986B-4FB2-BACE-16FD7A7BC9EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0549D23F-986B-4FB2-BACE-16FD7A7BC9EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD51759B-CD58-473F-9620-0B0E56A123A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD51759B-CD58-473F-9620-0B0E56A123A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD51759B-CD58-473F-9620-0B0E56A123A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD51759B-CD58-473F-9620-0B0E56A123A1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{69F9A0ED-7910-4F33-8919-28BB05376FBC} = {F2407211-6043-439C-8E06-3641634332E7}
+		{0549D23F-986B-4FB2-BACE-16FD7A7BC9EF} = {A1893BD1-333D-4DFE-A0F0-DDBB2FE526E0}
+		{AD51759B-CD58-473F-9620-0B0E56A123A1} = {E30F638E-BBBE-4AD1-93CE-48CC69CFEFE1}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {811E61C5-3871-4633-AFAE-B35B619C8A10}
+	EndGlobalSection
+EndGlobal
