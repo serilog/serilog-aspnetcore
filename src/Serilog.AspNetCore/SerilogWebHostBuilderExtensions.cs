@@ -41,5 +41,20 @@ namespace Serilog
                 collection.AddSingleton<ILoggerFactory>(new SerilogLoggerFactory(logger, dispose)));
             return builder;
         }
+
+        /// <summary>
+        /// Sets Serilog as the logging provider from the configuration.
+        /// </summary>
+        /// <param name="builder">The web host builder to configure.</param>
+        /// <param name="setCoreLogger">If true, set the static <see cref="Serilog.Log"/> from the built logger.</param>
+        /// <param name="dispose">When true, dispose the created logger when the framework disposes the provider.</param>
+        /// <returns>The web host builder.</returns>
+        public static IWebHostBuilder UseSerilogFromConfiguration(this IWebHostBuilder builder, bool setCoreLogger = true, bool dispose = false)
+        {
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+            builder.ConfigureServices((context, collection) =>
+                collection.AddSingleton<ILoggerFactory>(new SerilogLoggerFactory(context.Configuration, setCoreLogger, dispose)));
+            return builder;
+        }
     }
 }

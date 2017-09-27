@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Serilog.Debugging;
 using Serilog.Extensions.Logging;
@@ -21,6 +22,20 @@ namespace Serilog.AspNetCore
     class SerilogLoggerFactory : ILoggerFactory
     {
         readonly SerilogLoggerProvider _provider;
+
+        public SerilogLoggerFactory(IConfiguration configuration, bool setCoreLogger = true, bool dispose = false)
+        {
+            var logger = new Serilog.LoggerConfiguration()
+                .ReadFrom.Configuration(configuration)
+                .CreateLogger();
+
+            if (setCoreLogger)
+            {
+                Serilog.Log.Logger = logger;
+            }
+
+            _provider = new SerilogLoggerProvider(logger, dispose);
+        }
 
         public SerilogLoggerFactory(Serilog.ILogger logger = null, bool dispose = false)
         {
