@@ -16,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Serilog.Debugging;
 using Serilog.Extensions.Logging;
+using System;
 
 namespace Serilog.AspNetCore
 {
@@ -23,11 +24,9 @@ namespace Serilog.AspNetCore
     {
         readonly SerilogLoggerProvider _provider;
 
-        public SerilogLoggerFactory(IConfiguration configuration, bool setCoreLogger = true, bool dispose = false)
+        public SerilogLoggerFactory(IConfiguration configuration, Func<IConfiguration, Serilog.ILogger> loggerBuilder, bool setCoreLogger = true, bool dispose = false)
         {
-            var logger = new Serilog.LoggerConfiguration()
-                .ReadFrom.Configuration(configuration)
-                .CreateLogger();
+            var logger = loggerBuilder(configuration);
 
             if (setCoreLogger)
             {

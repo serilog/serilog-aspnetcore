@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog.AspNetCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 
 namespace Serilog
 {
@@ -46,14 +47,16 @@ namespace Serilog
         /// Sets Serilog as the logging provider from the configuration.
         /// </summary>
         /// <param name="builder">The web host builder to configure.</param>
+        /// <param name="loggerBuilder">The function to build the logger</param>
         /// <param name="setCoreLogger">If true, set the static <see cref="Serilog.Log"/> from the built logger.</param>
         /// <param name="dispose">When true, dispose the created logger when the framework disposes the provider.</param>
         /// <returns>The web host builder.</returns>
-        public static IWebHostBuilder UseSerilogFromConfiguration(this IWebHostBuilder builder, bool setCoreLogger = true, bool dispose = false)
+        public static IWebHostBuilder UseSerilog(this IWebHostBuilder builder, Func<IConfiguration, Serilog.ILogger> loggerBuilder, 
+            bool setCoreLogger = true, bool dispose = false)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             builder.ConfigureServices((context, collection) =>
-                collection.AddSingleton<ILoggerFactory>(new SerilogLoggerFactory(context.Configuration, setCoreLogger, dispose)));
+                collection.AddSingleton<ILoggerFactory>(new SerilogLoggerFactory(context.Configuration, loggerBuilder, setCoreLogger, dispose)));
             return builder;
         }
     }

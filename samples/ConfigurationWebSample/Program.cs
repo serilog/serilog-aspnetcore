@@ -30,7 +30,11 @@ namespace SimpleWebSample
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
-                .UseSerilogFromConfiguration()
+                .UseSerilog(configuration =>
+                    new Serilog.LoggerConfiguration()
+                        .ReadFrom.Configuration(configuration)
+                        .CreateLogger()
+                )
                 .Build();
 
     }
