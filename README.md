@@ -86,3 +86,5 @@ Tip: to see Serilog output in the Visual Studio output window when running under
 ### Using the package
 
 With _Serilog.AspNetCore_ installed and configured, you can write log messages directly through Serilog or any `ILogger` interface injected by ASP.NET. All loggers will use the same underlying implementation, levels, and destinations.
+
+**Tip:** change the minimum level for `Microsoft` to `Warning` and plug in this [custom logging middleware](https://github.com/datalust/serilog-middleware-example/blob/master/src/Datalust.SerilogMiddlewareExample/Diagnostics/SerilogMiddleware.cs) to clean up request logging output and record more context around errors and exceptions.
