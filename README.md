@@ -89,41 +89,17 @@ With _Serilog.AspNetCore_ installed and configured, you can write log messages d
 
 **Tip:** change the minimum level for `Microsoft` to `Warning` and plug in this [custom logging middleware](https://github.com/datalust/serilog-middleware-example/blob/master/src/Datalust.SerilogMiddlewareExample/Diagnostics/SerilogMiddleware.cs) to clean up request logging output and record more context around errors and exceptions.
 
-### Alternative configuration
+### Inline initialization
 
-You can chose to build the logger as part of the `WebHostBuilder` pipeline, and thus benefit from the application configuration.
-The following code shows an example of such a configuration:
+You can alternatively configure Serilog using a delegate as shown below:
 
-````csharp
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        var host = new WebHostBuilder()
-            .UseKestrel()
-            .UseContentRoot(Directory.GetCurrentDirectory())
-            // Load the application configuration over the web host configuration.
-            .ConfigureAppConfiguration((hostingContext, configurationBuilder) =>
-            {
-                configurationBuilder
-                    .SetBasePath(hostingContext.HostingEnvironment.ContentRootPath)
-                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                    .AddJsonFile($"appsettings.{hostingContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-                    .AddEnvironmentVariables();
-            })
-            // Configure Serilog to be used as the logger for the whole application.
-            .UseSerilog((hostingContext, loggerConfiguration) =>
-                loggerConfiguration.ReadFrom.Configuration(hostingContext.Configuration)
-                    .Enrich.FromLogContext()
-                    .WriteTo.Console()
-            )
-            .UseIISIntegration()
-            .UseStartup<Startup>()
-            .Build();
+```csharp
+    .UseSerilog((hostingContext, loggerConfiguration) => loggerConfiguration
+	.ReadFrom.Configuration(hostingContext.Configuration)
+	.Enrich.FromLogContext()
+	.WriteTo.Console())
+```
 
-        host.Run();
-    }
-}
-````
+This has the advantage of making the `hostingContext`'s `Configuration` object available for configuration of the logger, but at the expense of recording `Exception`s raised earlier in program startup.
 
-With this code, the default behavior is to set the created `ILogger` as the default logger. `Log.Logger` can be used as usual to access the created logger.
+If this method is used, `Log.Logger` is assigned implicitly, and closed when the app is shut down.
