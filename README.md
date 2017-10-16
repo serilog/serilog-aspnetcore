@@ -88,3 +88,42 @@ Tip: to see Serilog output in the Visual Studio output window when running under
 With _Serilog.AspNetCore_ installed and configured, you can write log messages directly through Serilog or any `ILogger` interface injected by ASP.NET. All loggers will use the same underlying implementation, levels, and destinations.
 
 **Tip:** change the minimum level for `Microsoft` to `Warning` and plug in this [custom logging middleware](https://github.com/datalust/serilog-middleware-example/blob/master/src/Datalust.SerilogMiddlewareExample/Diagnostics/SerilogMiddleware.cs) to clean up request logging output and record more context around errors and exceptions.
+
+### Alternative configuration
+
+You can chose to build the logger as part of the `WebHostBuilder` pipeline, and thus benefit from the application configuration.
+The following code shows an example of such a configuration:
+
+````csharp
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        var host = new WebHostBuilder()
+            .UseKestrel()
+            .UseContentRoot(Directory.GetCurrentDirectory())
+            // Load the application configuration over the web host configuration.
+            .ConfigureAppConfiguration((hostingContext, configurationBuilder) =>
+            {
+                configurationBuilder
+                    .SetBasePath(hostingContext.HostingEnvironment.ContentRootPath)
+                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                    .AddJsonFile($"appsettings.{hostingContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                    .AddEnvironmentVariables();
+            })
+            // Configure Serilog to be used as the logger for the whole application.
+            .UseSerilog((hostingContext, loggerConfiguration) =>
+                loggerConfiguration.ReadFrom.Configuration(hostingContext.Configuration)
+                    .Enrich.FromLogContext()
+                    .WriteTo.Console()
+            )
+            .UseIISIntegration()
+            .UseStartup<Startup>()
+            .Build();
+
+        host.Run();
+    }
+}
+````
+
+With this code, the default behavior is to set the created `ILogger` as the default logger. `Log.Logger` can be used as usual to access the created logger.
