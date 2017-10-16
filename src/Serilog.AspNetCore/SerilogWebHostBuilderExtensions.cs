@@ -60,8 +60,17 @@ namespace Serilog
                 var loggerConfiguration = new LoggerConfiguration();
                 configureLogger(context, loggerConfiguration);
                 var logger = loggerConfiguration.CreateLogger();
-                collection.AddSingleton<ILoggerFactory>(services => new SerilogLoggerFactory(logger, true));
-                if (!preserveStaticLogger) Log.Logger = logger;
+                if (preserveStaticLogger)
+                {
+                    collection.AddSingleton<ILoggerFactory>(services => new SerilogLoggerFactory(logger, true));
+                }
+                else 
+                {
+                    // Passing a `null` logger to `SerilogLoggerFactory` results in disposal via
+                    // `Log.CloseAndFlush()`, which additionally replaces the static logger with a no-op.
+                    Log.Logger = logger;
+                    collection.AddSingleton<ILoggerFactory>(services => new SerilogLoggerFactory(null, true));
+                }
             });
             return builder;
         }
