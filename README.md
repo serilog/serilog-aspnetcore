@@ -12,7 +12,7 @@ Install-Package Serilog.AspNetCore -DependencyVersion Highest
 Install-Package Serilog.Sinks.Console
 ```
 
-**Next**, in your application's _Program.cs_ file, configure Serilog first:
+**Next**, in your application's _Program.cs_ file, configure Serilog first.  A `try`/`catch` block will ensure any configuration issues are appropriately logged:
 
 ```csharp
 public class Program
@@ -25,25 +25,11 @@ public class Program
             .Enrich.FromLogContext()
             .WriteTo.Console()
             .CreateLogger();
-```
 
-Then, add `UseSerilog()` to the web host builder. A `try`/`catch` block will ensure any configuration issues are appropriately logged:
-
-```csharp
         try
         {
             Log.Information("Starting web host");
-
-            var host = new WebHostBuilder()
-                .UseKestrel()
-                .UseContentRoot(Directory.GetCurrentDirectory())
-                .UseIISIntegration()
-                .UseStartup<Startup>()
-                .UseSerilog() // <-- Add this line
-                .Build();
-
-            host.Run();
-
+            BuildWebHost(args).Run();
             return 0;
         }
         catch (Exception ex)
@@ -56,6 +42,16 @@ Then, add `UseSerilog()` to the web host builder. A `try`/`catch` block will ens
             Log.CloseAndFlush();
         }
     }
+```
+
+Then, add `UseSerilog()` to the web host builder in `BuildWebHost()`.
+
+```csharp    
+    public static IWebHost BuildWebHost(string[] args) =>
+        WebHost.CreateDefaultBuilder(args)
+	    .UseStartup<Startup>()
+            .UseSerilog() // <-- Add this line
+            .Build();
 }
 ```
 
@@ -83,6 +79,25 @@ That's it! With the level bumped up a little you will see log output like:
 
 Tip: to see Serilog output in the Visual Studio output window when running under IIS, select _ASP.NET Core Web Server_ from the _Show output from_ drop-down list.
 
+A more complete example, showing _appsettings.json_ configuration, can be found in [the sample project here](https://github.com/serilog/serilog-aspnetcore/tree/dev/samples/SimpleWebSample).
+
 ### Using the package
 
 With _Serilog.AspNetCore_ installed and configured, you can write log messages directly through Serilog or any `ILogger` interface injected by ASP.NET. All loggers will use the same underlying implementation, levels, and destinations.
+
+**Tip:** change the minimum level for `Microsoft` to `Warning` and plug in this [custom logging middleware](https://github.com/datalust/serilog-middleware-example/blob/master/src/Datalust.SerilogMiddlewareExample/Diagnostics/SerilogMiddleware.cs) to clean up request logging output and record more context around errors and exceptions.
+
+### Inline initialization
+
+You can alternatively configure Serilog using a delegate as shown below:
+
+```csharp
+    .UseSerilog((hostingContext, loggerConfiguration) => loggerConfiguration
+	.ReadFrom.Configuration(hostingContext.Configuration)
+	.Enrich.FromLogContext()
+	.WriteTo.Console())
+```
+
+This has the advantage of making the `hostingContext`'s `Configuration` object available for configuration of the logger, but at the expense of recording `Exception`s raised earlier in program startup.
+
+If this method is used, `Log.Logger` is assigned implicitly, and closed when the app is shut down.
