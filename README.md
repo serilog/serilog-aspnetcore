@@ -44,7 +44,7 @@ public class Program
     }
 ```
 
-Then, add `UseSerilog()` to the web host builder in `BuildWebHost()`.
+**Then**, add `UseSerilog()` to the web host builder in `BuildWebHost()`.
 
 ```csharp    
     public static IWebHost BuildWebHost(string[] args) =>
