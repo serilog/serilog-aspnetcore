@@ -47,10 +47,7 @@ namespace SimpleWebSample
             WebHost.CreateDefaultBuilder(args)
                    .UseStartup<Startup>()
                    .UseConfiguration(Configuration)
-                   .UseSerilog((context, configuration) =>
-                        configuration.ReadFrom.Configuration(Configuration)
-                            .Enrich.FromLogContext()
-                            .WriteTo.Console())
+                   .UseSerilog()
                    .Build();
     }
 }
