@@ -18,26 +18,49 @@ using Serilog.Extensions.Logging;
 
 namespace Serilog.AspNetCore
 {
-    public class SerilogLoggerFactory : ILoggerFactory
+	/// <summary>
+	/// Implements Microsoft's ILoggerFactory so that we can inject Serilog Logger.
+	/// </summary>
+	/// <seealso cref="Microsoft.Extensions.Logging.ILoggerFactory" />
+	public class SerilogLoggerFactory : ILoggerFactory
     {
         readonly SerilogLoggerProvider _provider;
 
-        public SerilogLoggerFactory(Serilog.ILogger logger = null, bool dispose = false)
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SerilogLoggerFactory"/> class.
+		/// </summary>
+		/// <param name="logger">The logger.</param>
+		/// <param name="dispose">if set to <c>true</c> [dispose].</param>
+		public SerilogLoggerFactory(Serilog.ILogger logger = null, bool dispose = false)
         {
             _provider = new SerilogLoggerProvider(logger, dispose);
         }
 
-        public void Dispose()
+		/// <summary>
+		/// Disposes the provider.
+		/// </summary>
+		public void Dispose()
         {
             _provider.Dispose();
         }
 
-        public Microsoft.Extensions.Logging.ILogger CreateLogger(string categoryName)
+		/// <summary>
+		/// Creates a new <see cref="T:Microsoft.Extensions.Logging.ILogger" /> instance.
+		/// </summary>
+		/// <param name="categoryName">The category name for messages produced by the logger.</param>
+		/// <returns>
+		/// The <see cref="T:Microsoft.Extensions.Logging.ILogger" />.
+		/// </returns>
+		public Microsoft.Extensions.Logging.ILogger CreateLogger(string categoryName)
         {
             return _provider.CreateLogger(categoryName);
         }
 
-        public void AddProvider(ILoggerProvider provider)
+		/// <summary>
+		/// Adds an <see cref="T:Microsoft.Extensions.Logging.ILoggerProvider" /> to the logging system.
+		/// </summary>
+		/// <param name="provider">The <see cref="T:Microsoft.Extensions.Logging.ILoggerProvider" />.</param>
+		public void AddProvider(ILoggerProvider provider)
         {
             SelfLog.WriteLine("Ignoring added logger provider {0}", provider);
         }
