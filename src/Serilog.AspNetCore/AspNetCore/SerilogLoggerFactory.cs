@@ -18,7 +18,7 @@ using Serilog.Extensions.Logging;
 
 namespace Serilog.AspNetCore
 {
-    class SerilogLoggerFactory : ILoggerFactory
+    public class SerilogLoggerFactory : ILoggerFactory
     {
         readonly SerilogLoggerProvider _provider;
 
