@@ -92,6 +92,7 @@ With _Serilog.AspNetCore_ installed and configured, you can write log messages d
 You can alternatively configure Serilog using a delegate as shown below:
 
 ```csharp
+    // dotnet add package Serilog.Settings.Configuration
     .UseSerilog((hostingContext, loggerConfiguration) => loggerConfiguration
 	.ReadFrom.Configuration(hostingContext.Configuration)
 	.Enrich.FromLogContext()
