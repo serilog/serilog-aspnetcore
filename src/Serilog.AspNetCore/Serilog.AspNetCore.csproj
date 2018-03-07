@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Serilog support for ASP.NET Core logging</Description>
-    <VersionPrefix>2.1.1</VersionPrefix>
+    <VersionPrefix>2.1.2</VersionPrefix>
     <Authors>Microsoft;Serilog Contributors</Authors>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
