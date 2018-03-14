@@ -102,3 +102,31 @@ You can alternatively configure Serilog using a delegate as shown below:
 This has the advantage of making the `hostingContext`'s `Configuration` object available for configuration of the logger, but at the expense of recording `Exception`s raised earlier in program startup.
 
 If this method is used, `Log.Logger` is assigned implicitly, and closed when the app is shut down.
+
+### Writing to the Azure Diagnostics Log Stream
+
+The Azure Diagnostic Log Stream ships events from any files in the `D:\home\LogFiles\` folder. To enable this for your app, first install the _Serilog.Sinks.File_ package:
+
+```powershell
+Install-Package Serilog.Sinks.File
+```
+
+Then add a file sink to your `LoggerConfiguration`, taking care to set the `shared` and `flushToDiskInterval` parameters:
+
+```csharp
+    public static int Main(string[] args)
+    {
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .Enrich.FromLogContext()
+            .WriteTo.Console()
+	    // Add this line:
+	    .WriteTo.File(
+	    	@"D:\home\LogFiles\Application\myapp.txt",
+		fileSizeLimitBytes: 1_000_000,
+		rollOnFileSizeLimit: true,
+		shared: true,
+		flushToDiskInterval: TimeSpan.FromSeconds(1))
+            .CreateLogger();
+```
