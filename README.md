@@ -103,6 +103,8 @@ This has the advantage of making the `hostingContext`'s `Configuration` object a
 
 If this method is used, `Log.Logger` is assigned implicitly, and closed when the app is shut down.
 
+Note: Configuring Serilog via the `hostingContext`'s `Configuration` object requires that you've installed the _Serilog.Settings.Configuration_ [NuGet package](https://www.nuget.org/packages/Serilog.Settings.Configuration).
+
 ### Writing to the Azure Diagnostics Log Stream
 
 The Azure Diagnostic Log Stream ships events from any files in the `D:\home\LogFiles\` folder. To enable this for your app, first install the _Serilog.Sinks.File_ package:
