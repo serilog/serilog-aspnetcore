@@ -13,6 +13,12 @@ build_script:
 test: off
 artifacts:
 - path: artifacts/Serilog.*.nupkg
+only_commits:
+  files:
+    - serilog-aspnetcore.sln
+    - src/Serilog.AspNetCore/
+    - Build.ps1
+    - assets/
 deploy:
 - provider: NuGet
   api_key:
