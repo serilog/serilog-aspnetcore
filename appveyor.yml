@@ -19,6 +19,7 @@ only_commits:
     - src/Serilog.AspNetCore/
     - Build.ps1
     - assets/
+    - test/Serilog.AspNetCore.Tests/
 deploy:
 - provider: NuGet
   api_key:
