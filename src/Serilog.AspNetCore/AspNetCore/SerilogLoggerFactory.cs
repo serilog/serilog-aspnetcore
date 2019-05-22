@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using Microsoft.Extensions.Logging;
 using Serilog.Debugging;
 using Serilog.Extensions.Logging;
@@ -21,6 +22,7 @@ namespace Serilog.AspNetCore
     /// <summary>
     /// Implements <see cref="ILoggerFactory"/> so that we can inject Serilog Logger.
     /// </summary>
+    [Obsolete("Replaced with Serilog.Extensions.Logging.SerilogLoggerFactory")]
     public class SerilogLoggerFactory : ILoggerFactory
     {
         private readonly SerilogLoggerProvider _provider;
