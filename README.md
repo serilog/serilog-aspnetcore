@@ -49,7 +49,7 @@ public class Program
 ```csharp    
     public static IWebHost BuildWebHost(string[] args) =>
         WebHost.CreateDefaultBuilder(args)
-	    .UseStartup<Startup>()
+	        .UseStartup<Startup>()
             .UseSerilog() // <-- Add this line
             .Build();
 }
@@ -58,11 +58,11 @@ public class Program
 **Finally**, clean up by removing the remaining configuration for the default logger:
 
  * Remove calls to `AddLogging()`
- * Remove the `"Logging"` section from _appsettings.json_ files (this can be replaced with [Serilog configuration](https://github.com/serilog/serilog-settings-configuration) as shown in [this example](https://github.com/serilog/serilog-aspnetcore/blob/dev/samples/SimpleWebSample/Program.cs), if required)
+ * Remove the `"Logging"` section from _appsettings.json_ files (this can be replaced with [Serilog configuration](https://github.com/serilog/serilog-settings-configuration) as shown in [the _EarlyInitializationSample_ project](https://github.com/serilog/serilog-aspnetcore/blob/dev/samples/EarlyInitializationSample/Program.cs), if required)
  * Remove `ILoggerFactory` parameters and any `Add*()` calls on the logger factory in _Startup.cs_
  * Remove `UseApplicationInsights()` (this can be replaced with the [Serilog AI sink](https://github.com/serilog/serilog-sinks-applicationinsights), if required)
 
-That's it! With the level bumped up a little you will see log output like:
+That's it! With the level bumped up a little you will see log output resembling:
 
 ```
 [22:14:44.646 DBG] RouteCollection.RouteAsync
@@ -79,7 +79,7 @@ That's it! With the level bumped up a little you will see log output like:
 
 Tip: to see Serilog output in the Visual Studio output window when running under IIS, select _ASP.NET Core Web Server_ from the _Show output from_ drop-down list.
 
-A more complete example, showing _appsettings.json_ configuration, can be found in [the sample project here](https://github.com/serilog/serilog-aspnetcore/tree/dev/samples/SimpleWebSample).
+A more complete example, showing _appsettings.json_ configuration, can be found in [the sample project here](https://github.com/serilog/serilog-aspnetcore/tree/dev/samples/EarlyInitializationSample).
 
 ### Using the package
 
@@ -89,21 +89,60 @@ With _Serilog.AspNetCore_ installed and configured, you can write log messages d
 
 ### Inline initialization
 
-You can alternatively configure Serilog using a delegate as shown below:
+You can alternatively configure Serilog inline, in `BulidWebHost()`, using a delegate as shown below:
 
 ```csharp
     // dotnet add package Serilog.Settings.Configuration
     .UseSerilog((hostingContext, loggerConfiguration) => loggerConfiguration
-	.ReadFrom.Configuration(hostingContext.Configuration)
-	.Enrich.FromLogContext()
-	.WriteTo.Console())
+        .ReadFrom.Configuration(hostingContext.Configuration)
+        .Enrich.FromLogContext()
+        .WriteTo.Console())
 ```
 
 This has the advantage of making the `hostingContext`'s `Configuration` object available for configuration of the logger, but at the expense of recording `Exception`s raised earlier in program startup.
 
 If this method is used, `Log.Logger` is assigned implicitly, and closed when the app is shut down.
 
-Note: Configuring Serilog via the `hostingContext`'s `Configuration` object requires that you've installed the _Serilog.Settings.Configuration_ [NuGet package](https://www.nuget.org/packages/Serilog.Settings.Configuration).
+A complete example, showing this approach, can be found in [the _InlineIntializationSample_ project](https://github.com/serilog/serilog-aspnetcore/tree/dev/samples/InlineInitializationSample).
+
+### Enabling `Microsoft.Extensions.Logging.ILoggerProvider`s
+
+Serilog sends events to outputs called _sinks_, that implement Serilog's `ILogEventSink` interface, and are added to the logging pipeline using `WriteTo`. _Microsoft.Extensions.Logging_ has a similar concept called _providers_, and these implement `ILoggerProvider`. Providers are what the default logging configuration creates under the hood through methods like `AddConsole()`.
+
+By default, Serilog ignores providers, since there are usually equivalent Serilog sinks available, and these work more efficiently with Serilog's pipeline. If provider support is needed, it can be optionally enabled.
+
+**Using the recommended configuration:**
+
+In the recommended configuration (in which startup exceptions are caught and logged), first create a `LoggerProviderCollection` in a static field in _Program.cs_:
+
+```csharp
+        // using Serilog.Extensions.Logging;
+        static readonly LoggerProviderCollection Providers = new LoggerProviderCollection();
+```
+
+Next, add `WriteTo.Providers()` to the logger configuration:
+
+```csharp
+                .WriteTo.Providers(Providers)
+```
+
+Finally, pass the provider collection into `UseSerilog()`:
+
+```csharp
+                   .UseSerilog(providers: Providers)
+```
+
+Providers registered in _Startup.cs_ with `AddLogging()` will then receive events from Serilog.
+
+**Using iniline initialization:**
+
+If [inline initialization](#inline-initialization) is used, providers can be enabled by adding `writeToProviders: true` to the `UseSerilog()` method call:
+
+```csharp
+    .UseSerilog(
+        (hostingContext, loggerConfiguration) => /* snip! */,
+        writeToProviders: true)
+```
 
 ### Writing to the Azure Diagnostics Log Stream
 
