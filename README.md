@@ -162,12 +162,12 @@ Then add a file sink to your `LoggerConfiguration`, taking care to set the `shar
             .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
             .Enrich.FromLogContext()
             .WriteTo.Console()
-	    // Add this line:
-	    .WriteTo.File(
-	    	@"D:\home\LogFiles\Application\myapp.txt",
-		fileSizeLimitBytes: 1_000_000,
-		rollOnFileSizeLimit: true,
-		shared: true,
-		flushToDiskInterval: TimeSpan.FromSeconds(1))
+			// Add this line:
+			.WriteTo.File(
+				@"D:\home\LogFiles\Application\myapp.txt",
+				fileSizeLimitBytes: 1_000_000,
+				rollOnFileSizeLimit: true,
+				shared: true,
+				flushToDiskInterval: TimeSpan.FromSeconds(1))
             .CreateLogger();
 ```
