@@ -49,7 +49,7 @@ public class Program
 ```csharp    
     public static IWebHost BuildWebHost(string[] args) =>
         WebHost.CreateDefaultBuilder(args)
-	        .UseStartup<Startup>()
+            .UseStartup<Startup>()
             .UseSerilog() // <-- Add this line
             .Build();
 }
@@ -66,12 +66,12 @@ That's it! With the level bumped up a little you will see log output resembling:
 
 ```
 [22:14:44.646 DBG] RouteCollection.RouteAsync
-	Routes: 
-		Microsoft.AspNet.Mvc.Routing.AttributeRoute
-		{controller=Home}/{action=Index}/{id?}
-	Handled? True
+    Routes: 
+        Microsoft.AspNet.Mvc.Routing.AttributeRoute
+        {controller=Home}/{action=Index}/{id?}
+    Handled? True
 [22:14:44.647 DBG] RouterMiddleware.Invoke
-	Handled? True
+    Handled? True
 [22:14:45.706 DBG] /lib/jquery/jquery.js not modified
 [22:14:45.706 DBG] /css/site.css not modified
 [22:14:45.741 DBG] Handled. Status code: 304 File: /css/site.css
@@ -162,12 +162,12 @@ Then add a file sink to your `LoggerConfiguration`, taking care to set the `shar
             .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
             .Enrich.FromLogContext()
             .WriteTo.Console()
-			// Add this line:
-			.WriteTo.File(
-				@"D:\home\LogFiles\Application\myapp.txt",
-				fileSizeLimitBytes: 1_000_000,
-				rollOnFileSizeLimit: true,
-				shared: true,
-				flushToDiskInterval: TimeSpan.FromSeconds(1))
+            // Add this line:
+            .WriteTo.File(
+                @"D:\home\LogFiles\Application\myapp.txt",
+                fileSizeLimitBytes: 1_000_000,
+                rollOnFileSizeLimit: true,
+                shared: true,
+                flushToDiskInterval: TimeSpan.FromSeconds(1))
             .CreateLogger();
 ```
