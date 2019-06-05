@@ -29,7 +29,7 @@ public class Program
         try
         {
             Log.Information("Starting web host");
-            BuildWebHost(args).Run();
+            CreateWebHostBuilder(args).Build().Run();
             return 0;
         }
         catch (Exception ex)
@@ -46,12 +46,11 @@ public class Program
 
 **Then**, add `UseSerilog()` to the web host builder in `BuildWebHost()`.
 
-```csharp    
-    public static IWebHost BuildWebHost(string[] args) =>
-        WebHost.CreateDefaultBuilder(args)
-            .UseStartup<Startup>()
-            .UseSerilog() // <-- Add this line
-            .Build();
+```csharp        
+    public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .UseStartup<Startup>()
+                .UseSerilog(); // <-- Add this line;
 }
 ```
 
