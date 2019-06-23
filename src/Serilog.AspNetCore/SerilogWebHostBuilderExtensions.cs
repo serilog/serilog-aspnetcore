@@ -88,6 +88,7 @@ namespace Serilog
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             if (configureLogger == null) throw new ArgumentNullException(nameof(configureLogger));
+
             builder.ConfigureServices((context, collection) =>
             {
                 var loggerConfiguration = new LoggerConfiguration();
@@ -105,13 +106,13 @@ namespace Serilog
                 ILogger registeredLogger = null;
                 if (preserveStaticLogger)
                 {
-                    // Passing a `null` logger to `SerilogLoggerFactory` results in disposal via
-                    // `Log.CloseAndFlush()`, which additionally replaces the static logger with a no-op.
-                    Log.Logger = logger;
+                    registeredLogger = logger;
                 }
                 else
                 {
-                    registeredLogger = logger;
+                    // Passing a `null` logger to `SerilogLoggerFactory` results in disposal via
+                    // `Log.CloseAndFlush()`, which additionally replaces the static logger with a no-op.
+                    Log.Logger = logger;
                 }
 
                 collection.AddSingleton<ILoggerFactory>(services =>
