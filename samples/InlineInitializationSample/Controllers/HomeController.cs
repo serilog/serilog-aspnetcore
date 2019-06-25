@@ -1,29 +1,38 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.AspNetCore.Mvc;
 using InlineInitializationSample.Models;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace InlineInitializationSample.Controllers
 {
     public class HomeController : Controller
     {
-        readonly ILogger<HomeController> _logger;
+        static int _callCount;
 
-        public HomeController(ILogger<HomeController> logger)
+        readonly ILogger<HomeController> _logger;
+        readonly IDiagnosticContext _diagnosticContext;
+
+        public HomeController(ILogger<HomeController> logger, IDiagnosticContext diagnosticContext)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _diagnosticContext = diagnosticContext ?? throw new ArgumentNullException(nameof(diagnosticContext));
         }
 
         public IActionResult Index()
         {
             _logger.LogInformation("Hello, world!");
+
+            _diagnosticContext.Add("IndexCallCount", Interlocked.Increment(ref _callCount));
+
             return View();
         }
 
         public IActionResult Privacy()
         {
-            return View();
+            throw new InvalidOperationException("Something went wrong.");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

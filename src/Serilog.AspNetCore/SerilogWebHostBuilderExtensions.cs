@@ -1,4 +1,4 @@
-﻿// Copyright 2017 Serilog Contributors
+﻿// Copyright 2017-2019 Serilog Contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog.Extensions.Hosting;
 
 namespace Serilog
 {
@@ -63,6 +64,8 @@ namespace Serilog
                 {
                     collection.AddSingleton<ILoggerFactory>(services => new SerilogLoggerFactory(logger, dispose));
                 }
+
+                ConfigureServices(collection, logger);
             });
 
             return builder;
@@ -127,8 +130,30 @@ namespace Serilog
 
                     return factory;
                 });
+
+                ConfigureServices(collection, logger);
             });
             return builder;
+        }
+        
+        static void ConfigureServices(IServiceCollection collection, ILogger logger)
+        {
+            if (collection == null) throw new ArgumentNullException(nameof(collection));
+
+            if (logger != null)
+            {
+                // This won't (and shouldn't) take ownership of the logger. 
+                collection.AddSingleton(logger);
+            }
+
+            // Registered to provide two services...
+            var diagnosticContext = new DiagnosticContext(logger);
+
+            // Consumed by e.g. middleware
+            collection.AddSingleton(diagnosticContext);
+
+            // Consumed by user code
+            collection.AddSingleton<IDiagnosticContext>(diagnosticContext);
         }
     }
 }
