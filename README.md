@@ -15,6 +15,8 @@ Install-Package Serilog.Sinks.Console
 **Next**, in your application's _Program.cs_ file, configure Serilog first.  A `try`/`catch` block will ensure any configuration issues are appropriately logged:
 
 ```csharp
+using Serilog;
+
 public class Program
 {
     public static int Main(string[] args)
