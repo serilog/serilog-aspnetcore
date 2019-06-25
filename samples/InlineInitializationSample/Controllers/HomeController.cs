@@ -10,7 +10,7 @@ namespace InlineInitializationSample.Controllers
 {
     public class HomeController : Controller
     {
-        static int _callCount = 0;
+        static int _callCount;
 
         readonly ILogger<HomeController> _logger;
         readonly IDiagnosticContext _diagnosticContext;
@@ -32,7 +32,7 @@ namespace InlineInitializationSample.Controllers
 
         public IActionResult Privacy()
         {
-            return View();
+            throw new InvalidOperationException("Something went wrong.");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

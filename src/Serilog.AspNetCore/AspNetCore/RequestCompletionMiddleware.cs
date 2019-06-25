@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -26,18 +27,19 @@ namespace Serilog.AspNetCore
 {
     class RequestLoggingMiddleware
     {
-        // We may, at some future point, wish to allow customization of the template used in completion events.
-        const int MessageTemplatePlaceholderCount = 4;
-        static readonly MessageTemplate MessageTemplate =
-            new MessageTemplateParser().Parse("HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms");
-
         readonly RequestDelegate _next;
         readonly DiagnosticContext _diagnosticContext;
+        readonly MessageTemplate _messageTemplate;
+        readonly int _messageTemplatePlaceholderCount;
 
-        public RequestLoggingMiddleware(RequestDelegate next, DiagnosticContext diagnosticContext)
+        public RequestLoggingMiddleware(RequestDelegate next, DiagnosticContext diagnosticContext, RequestLoggingOptions options)
         {
+            if (options == null) throw new ArgumentNullException(nameof(options));
             _next = next ?? throw new ArgumentNullException(nameof(next));
             _diagnosticContext = diagnosticContext ?? throw new ArgumentNullException(nameof(diagnosticContext));
+
+            _messageTemplate = new MessageTemplateParser().Parse(options.MessageTemplate);
+            _messageTemplatePlaceholderCount = _messageTemplate.Tokens.OfType<PropertyToken>().Count();
         }
 
         // ReSharper disable once UnusedMember.Global
@@ -46,19 +48,28 @@ namespace Serilog.AspNetCore
             if (httpContext == null) throw new ArgumentNullException(nameof(httpContext));
 
             var start = Stopwatch.GetTimestamp();
+
             var collector = _diagnosticContext.BeginCollection();
             try
             {
                 await _next(httpContext);
                 var elapsedMs = GetElapsedMilliseconds(start, Stopwatch.GetTimestamp());
-                var statusCode = httpContext.Response?.StatusCode;
+                var statusCode = httpContext.Response.StatusCode;
                 LogCompletion(httpContext, collector, statusCode, elapsedMs, null);
             }
-            // Never caught, because `LogCompletion()` returns false.
-            catch (Exception ex) when (LogCompletion(httpContext, collector, 500, GetElapsedMilliseconds(start, Stopwatch.GetTimestamp()), ex)) { }
+            catch (Exception ex)
+                // Never caught, because `LogCompletion()` returns false. This ensures e.g. the developer exception page is still
+                // shown, although it does also mean we see a duplicate "unhandled exception" event from ASP.NET Core.
+                when (LogCompletion(httpContext, collector, 500, GetElapsedMilliseconds(start, Stopwatch.GetTimestamp()), ex))
+            {
+            }
+            finally
+            {
+                collector.Dispose();
+            }
         }
 
-        static bool LogCompletion(HttpContext httpContext, DiagnosticContextCollector collector, int? statusCode, double elapsedMs, Exception ex)
+        bool LogCompletion(HttpContext httpContext, DiagnosticContextCollector collector, int statusCode, double elapsedMs, Exception ex)
         {
             var level = statusCode > 499 ? LogEventLevel.Error : LogEventLevel.Information;
 
@@ -67,14 +78,14 @@ namespace Serilog.AspNetCore
             if (!collector.TryComplete(out var properties))
                 properties = new List<LogEventProperty>();
 
-            properties.Capacity = properties.Count + MessageTemplatePlaceholderCount;
+            properties.Capacity = properties.Count + _messageTemplatePlaceholderCount;
 
             // Last-in (rightly) wins...
             properties.Add(new LogEventProperty("RequestMethod", new ScalarValue(httpContext.Request.Method)));
             properties.Add(new LogEventProperty("RequestPath", new ScalarValue(GetPath(httpContext))));
             properties.Add(new LogEventProperty("StatusCode", new ScalarValue(statusCode)));
             properties.Add(new LogEventProperty("Elapsed", new ScalarValue(elapsedMs)));
-            var evt = new LogEvent(DateTimeOffset.Now, level, ex, MessageTemplate, properties);
+            var evt = new LogEvent(DateTimeOffset.Now, level, ex, _messageTemplate, properties);
             Log.Write(evt);
 
             return false;
