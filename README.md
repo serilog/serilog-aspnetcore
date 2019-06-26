@@ -93,7 +93,7 @@ As text, this has a format like:
 [16:05:54 INF] HTTP GET / responded 200 in 227.3253 ms
 ```
 
-Or as [JSON](https://github.com/serilog/serilog-formatting-compact):
+Or [as JSON](https://github.com/serilog/serilog-formatting-compact):
 
 ```json
 {
