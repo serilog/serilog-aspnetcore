@@ -1,15 +1,16 @@
 # Serilog.AspNetCore [![Build status](https://ci.appveyor.com/api/projects/status/4rscdto23ik6vm2r?svg=true)](https://ci.appveyor.com/project/serilog/serilog-aspnetcore) [![NuGet Version](http://img.shields.io/nuget/v/Serilog.AspNetCore.svg?style=flat)](https://www.nuget.org/packages/Serilog.AspNetCore/) 
 
+Serilog logging for ASP.NET Core. This package routes ASP.NET Core log messages through Serilog, so you can get information about ASP.NET's internal operations written to the same Serilog sinks as your application events.
 
-Serilog logging for ASP.NET Core. This package routes ASP.NET Core log messages through Serilog, so you can get information about ASP.NET's internal operations logged to the same Serilog sinks as your application events.
+With _Serilog.AspNetCore_ installed and configured, you can write log messages directly through Serilog or any `ILogger` interface injected by ASP.NET. All loggers will use the same underlying implementation, levels, and destinations.
 
 ### Instructions
 
 **First**, install the _Serilog.AspNetCore_ [NuGet package](https://www.nuget.org/packages/Serilog.AspNetCore) into your app. You will need a way to view the log messages - _Serilog.Sinks.Console_ writes these to the console; there are [many more sinks available](https://www.nuget.org/packages?q=Tags%3A%22serilog%22) on NuGet.
 
-```powershell
-Install-Package Serilog.AspNetCore -DependencyVersion Highest
-Install-Package Serilog.Sinks.Console
+```shell
+dotnet add package Serilog.AspNetCore
+dotnet add package Serilog.Sinks.Console
 ```
 
 **Next**, in your application's _Program.cs_ file, configure Serilog first.  A `try`/`catch` block will ensure any configuration issues are appropriately logged:
@@ -82,11 +83,82 @@ Tip: to see Serilog output in the Visual Studio output window when running under
 
 A more complete example, showing _appsettings.json_ configuration, can be found in [the sample project here](https://github.com/serilog/serilog-aspnetcore/tree/dev/samples/EarlyInitializationSample).
 
-### Using the package
+### Request logging
 
-With _Serilog.AspNetCore_ installed and configured, you can write log messages directly through Serilog or any `ILogger` interface injected by ASP.NET. All loggers will use the same underlying implementation, levels, and destinations.
+The package includes middleware for smarter HTTP request logging. The default request logging implemented by ASP.NET Core is noisy, with multiple events emitted per request. The included middleware condenses these into a single event that carries method, path, status code, and timing information.
 
-**Tip:** change the minimum level for `Microsoft` to `Warning` and plug in this [custom logging middleware](https://github.com/datalust/serilog-middleware-example/blob/master/src/Datalust.SerilogMiddlewareExample/Diagnostics/SerilogMiddleware.cs) to clean up request logging output and record more context around errors and exceptions.
+As text, this has a format like:
+
+```
+[16:05:54 INF] HTTP GET / responded 200 in 227.3253 ms
+```
+
+Or [as JSON](https://github.com/serilog/serilog-formatting-compact):
+
+```json
+{
+  "@t":"2019-06-26T06:05:54.6881162Z",
+  "@mt":"HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms",
+  "@r":["224.5185"],
+  "RequestMethod":"GET",
+  "RequestPath":"/",
+  "StatusCode":200,
+  "Elapsed":224.5185,
+  "RequestId":"0HLNPVG1HI42T:00000001",
+  "CorrelationId":null,
+  "ConnectionId":"0HLNPVG1HI42T"
+}
+```
+
+To enable the middleware, first change the minimum level for `Microsoft` to `Warning` in your logger configuration or _appsettings.json_ file:
+
+```csharp
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+```
+
+Then, in your application's _Startup.cs_, add the middleware with `UseSerilogRequestLogging()`:
+
+```csharp
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Home/Error");
+            }
+
+            app.UseSerilogRequestLogging(); // <-- Add this line
+
+            // Other app configuration
+```
+
+It's important that the `UseSerilogRequestLogging()` call appears _before_ handlers such as MVC. The middleware will not time or log components that appear before it in the pipeline. (This can be utilized to exclude noisy handlers from logging, such as `UseStaticFiles()`, by placing `UseSerilogRequestLogging()` after them.)
+
+During request processing, additional properties can be attached to the completion event using `IDiagnosticContext.Set()`:
+
+```csharp
+    public class HomeController : Controller
+    {
+        readonly IDiagnosticContext _diagnosticContext;
+
+        public HomeController(IDiagnosticContext diagnosticContext)
+        {
+            _diagnosticContext = diagnosticContext ?? throw new ArgumentNullException(nameof(diagnosticContext));
+        }
+
+        public IActionResult Index()
+        {
+			// The request completion event will carry this property
+            _diagnosticContext.Set("CatalogLoadTime", 1423);
+
+            return View();
+        }
+```
+
+This pattern has the advantage of reducing the number of log events that need to be constructed, transmitted, and stored per HTTP request. Having many properties on the same event can also make correlation of request details and other data easier.
 
 ### Inline initialization
 

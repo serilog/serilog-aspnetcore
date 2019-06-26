@@ -25,7 +25,7 @@ namespace EarlyInitializationSample.Controllers
         {
             _logger.LogInformation("Hello, world!");
 
-            _diagnosticContext.Add("IndexCallCount", Interlocked.Increment(ref _callCount));
+            _diagnosticContext.Set("IndexCallCount", Interlocked.Increment(ref _callCount));
 
             return View();
         }
