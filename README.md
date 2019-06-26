@@ -151,7 +151,7 @@ During request processing, additional properties can be attached to the completi
 
         public IActionResult Index()
         {
-			// The request completion event will carry this property
+            // The request completion event will carry this property
             _diagnosticContext.Set("CatalogLoadTime", 1423);
 
             return View();
