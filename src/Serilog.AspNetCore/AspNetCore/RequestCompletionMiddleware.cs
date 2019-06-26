@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,7 +29,8 @@ namespace Serilog.AspNetCore
         readonly RequestDelegate _next;
         readonly DiagnosticContext _diagnosticContext;
         readonly MessageTemplate _messageTemplate;
-        readonly int _messageTemplatePlaceholderCount;
+
+        static readonly LogEventProperty[] NoProperties = new LogEventProperty[0];
 
         public RequestLoggingMiddleware(RequestDelegate next, DiagnosticContext diagnosticContext, RequestLoggingOptions options)
         {
@@ -39,7 +39,6 @@ namespace Serilog.AspNetCore
             _diagnosticContext = diagnosticContext ?? throw new ArgumentNullException(nameof(diagnosticContext));
 
             _messageTemplate = new MessageTemplateParser().Parse(options.MessageTemplate);
-            _messageTemplatePlaceholderCount = _messageTemplate.Tokens.OfType<PropertyToken>().Count();
         }
 
         // ReSharper disable once UnusedMember.Global
@@ -75,16 +74,18 @@ namespace Serilog.AspNetCore
 
             if (!Log.IsEnabled(level)) return false;
             
-            if (!collector.TryComplete(out var properties))
-                properties = new List<LogEventProperty>();
+            if (!collector.TryComplete(out var collectedProperties))
+                collectedProperties = NoProperties;
 
-            properties.Capacity = properties.Count + _messageTemplatePlaceholderCount;
+            // Last-in (correctly) wins...
+            var properties = collectedProperties.Concat(new[]
+            {
+                new LogEventProperty("RequestMethod", new ScalarValue(httpContext.Request.Method)),
+                new LogEventProperty("RequestPath", new ScalarValue(GetPath(httpContext))),
+                new LogEventProperty("StatusCode", new ScalarValue(statusCode)),
+                new LogEventProperty("Elapsed", new ScalarValue(elapsedMs))
+            });
 
-            // Last-in (rightly) wins...
-            properties.Add(new LogEventProperty("RequestMethod", new ScalarValue(httpContext.Request.Method)));
-            properties.Add(new LogEventProperty("RequestPath", new ScalarValue(GetPath(httpContext))));
-            properties.Add(new LogEventProperty("StatusCode", new ScalarValue(statusCode)));
-            properties.Add(new LogEventProperty("Elapsed", new ScalarValue(elapsedMs)));
             var evt = new LogEvent(DateTimeOffset.Now, level, ex, _messageTemplate, properties);
             Log.Write(evt);
 
