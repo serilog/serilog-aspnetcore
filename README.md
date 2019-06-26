@@ -97,16 +97,16 @@ Or [as JSON](https://github.com/serilog/serilog-formatting-compact):
 
 ```json
 {
-  "@t":"2019-06-26T06:05:54.6881162Z",
-  "@mt":"HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms",
-  "@r":["224.5185"],
-  "RequestMethod":"GET",
-  "RequestPath":"/",
-  "StatusCode":200,
-  "Elapsed":224.5185,
-  "RequestId":"0HLNPVG1HI42T:00000001",
-  "CorrelationId":null,
-  "ConnectionId":"0HLNPVG1HI42T"
+  "@t": "2019-06-26T06:05:54.6881162Z",
+  "@mt": "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms",
+  "@r": ["224.5185"],
+  "RequestMethod": "GET",
+  "RequestPath": "/",
+  "StatusCode": 200,
+  "Elapsed": 224.5185,
+  "RequestId": "0HLNPVG1HI42T:00000001",
+  "CorrelationId": null,
+  "ConnectionId": "0HLNPVG1HI42T"
 }
 ```
 
