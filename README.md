@@ -1,4 +1,4 @@
-# Serilog.AspNetCore [![Build status](https://ci.appveyor.com/api/projects/status/4rscdto23ik6vm2r?svg=true)](https://ci.appveyor.com/project/serilog/serilog-aspnetcore) [![NuGet Version](http://img.shields.io/nuget/v/Serilog.AspNetCore.svg?style=flat)](https://www.nuget.org/packages/Serilog.AspNetCore/) 
+# Serilog.AspNetCore [![Build status](https://ci.appveyor.com/api/projects/status/4rscdto23ik6vm2r?svg=true)](https://ci.appveyor.com/project/serilog/serilog-aspnetcore) [![NuGet Version](http://img.shields.io/nuget/v/Serilog.AspNetCore.svg?style=flat)](https://www.nuget.org/packages/Serilog.AspNetCore/) [![NuGet Prerelease Version](http://img.shields.io/nuget/vpre/Serilog.AspNetCore.svg?style=flat)](https://www.nuget.org/packages/Serilog.AspNetCore/) 
 
 Serilog logging for ASP.NET Core. This package routes ASP.NET Core log messages through Serilog, so you can get information about ASP.NET's internal operations written to the same Serilog sinks as your application events.
 
@@ -83,7 +83,7 @@ Tip: to see Serilog output in the Visual Studio output window when running under
 
 A more complete example, showing _appsettings.json_ configuration, can be found in [the sample project here](https://github.com/serilog/serilog-aspnetcore/tree/dev/samples/EarlyInitializationSample).
 
-### Request logging
+### Request logging <sup>`3.0.0-*`</sup>
 
 The package includes middleware for smarter HTTP request logging. The default request logging implemented by ASP.NET Core is noisy, with multiple events emitted per request. The included middleware condenses these into a single event that carries method, path, status code, and timing information.
 
@@ -178,7 +178,7 @@ If this method is used, `Log.Logger` is assigned implicitly, and closed when the
 
 A complete example, showing this approach, can be found in [the _InlineIntializationSample_ project](https://github.com/serilog/serilog-aspnetcore/tree/dev/samples/InlineInitializationSample).
 
-### Enabling `Microsoft.Extensions.Logging.ILoggerProvider`s
+### Enabling `Microsoft.Extensions.Logging.ILoggerProvider`s <sup>`3.0.0-*`</sup>
 
 Serilog sends events to outputs called _sinks_, that implement Serilog's `ILogEventSink` interface, and are added to the logging pipeline using `WriteTo`. _Microsoft.Extensions.Logging_ has a similar concept called _providers_, and these implement `ILoggerProvider`. Providers are what the default logging configuration creates under the hood through methods like `AddConsole()`.
 
