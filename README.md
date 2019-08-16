@@ -6,11 +6,10 @@ With _Serilog.AspNetCore_ installed and configured, you can write log messages d
 
 ### Instructions
 
-**First**, install the _Serilog.AspNetCore_ [NuGet package](https://www.nuget.org/packages/Serilog.AspNetCore) into your app. You will need a way to view the log messages - _Serilog.Sinks.Console_ writes these to the console; there are [many more sinks available](https://www.nuget.org/packages?q=Tags%3A%22serilog%22) on NuGet.
+**First**, install the _Serilog.AspNetCore_ [NuGet package](https://www.nuget.org/packages/Serilog.AspNetCore) into your app.
 
 ```shell
 dotnet add package Serilog.AspNetCore
-dotnet add package Serilog.Sinks.Console
 ```
 
 **Next**, in your application's _Program.cs_ file, configure Serilog first.  A `try`/`catch` block will ensure any configuration issues are appropriately logged:
@@ -79,7 +78,7 @@ That's it! With the level bumped up a little you will see log output resembling:
 [22:14:45.741 DBG] Handled. Status code: 304 File: /css/site.css
 ```
 
-Tip: to see Serilog output in the Visual Studio output window when running under IIS, select _ASP.NET Core Web Server_ from the _Show output from_ drop-down list.
+Tip: to see Serilog output in the Visual Studio output window when running under IIS, either select _ASP.NET Core Web Server_ from the _Show output from_ drop-down list, or replace `WriteTo.Console()` in the logger configuration with `WriteTo.Debug()`.
 
 A more complete example, showing _appsettings.json_ configuration, can be found in [the sample project here](https://github.com/serilog/serilog-aspnetcore/tree/dev/samples/EarlyInitializationSample).
 
@@ -162,17 +161,16 @@ This pattern has the advantage of reducing the number of log events that need to
 
 ### Inline initialization
 
-You can alternatively configure Serilog inline, in `BulidWebHost()`, using a delegate as shown below:
+You can alternatively configure Serilog inline, in `BuildWebHost()`, using a delegate as shown below:
 
 ```csharp
-    // dotnet add package Serilog.Settings.Configuration
     .UseSerilog((hostingContext, loggerConfiguration) => loggerConfiguration
         .ReadFrom.Configuration(hostingContext.Configuration)
         .Enrich.FromLogContext()
         .WriteTo.Console())
 ```
 
-This has the advantage of making the `hostingContext`'s `Configuration` object available for configuration of the logger, but at the expense of recording `Exception`s raised earlier in program startup.
+This has the advantage of making the `hostingContext`'s `Configuration` object available for [configuration of the logger](https://github.com/serilog/serilog-settings-configuration), but at the expense of losing `Exception`s raised earlier in program startup.
 
 If this method is used, `Log.Logger` is assigned implicitly, and closed when the app is shut down.
 
@@ -219,13 +217,7 @@ If [inline initialization](#inline-initialization) is used, providers can be ena
 
 ### Writing to the Azure Diagnostics Log Stream
 
-The Azure Diagnostic Log Stream ships events from any files in the `D:\home\LogFiles\` folder. To enable this for your app, first install the _Serilog.Sinks.File_ package:
-
-```powershell
-Install-Package Serilog.Sinks.File
-```
-
-Then add a file sink to your `LoggerConfiguration`, taking care to set the `shared` and `flushToDiskInterval` parameters:
+The Azure Diagnostic Log Stream ships events from any files in the `D:\home\LogFiles\` folder. To enable this for your app, add a file sink to your `LoggerConfiguration`, taking care to set the `shared` and `flushToDiskInterval` parameters:
 
 ```csharp
     public static int Main(string[] args)
