@@ -78,9 +78,9 @@ That's it! With the level bumped up a little you will see log output resembling:
 [22:14:45.741 DBG] Handled. Status code: 304 File: /css/site.css
 ```
 
-Tip: to see Serilog output in the Visual Studio output window when running under IIS, either select _ASP.NET Core Web Server_ from the _Show output from_ drop-down list, or replace `WriteTo.Console()` in the logger configuration with `WriteTo.Debug()`.
+**Tip:** to see Serilog output in the Visual Studio output window when running under IIS, either select _ASP.NET Core Web Server_ from the _Show output from_ drop-down list, or replace `WriteTo.Console()` in the logger configuration with `WriteTo.Debug()`.
 
-A more complete example, showing _appsettings.json_ configuration, can be found in [the sample project here](https://github.com/serilog/serilog-aspnetcore/tree/dev/samples/EarlyInitializationSample).
+A more complete example, showing `appsettings.json` configuration, can be found in [the sample project here](https://github.com/serilog/serilog-aspnetcore/tree/dev/samples/EarlyInitializationSample).
 
 ### Request logging <sup>`3.0.0-*`</sup>
 
@@ -213,6 +213,16 @@ If [inline initialization](#inline-initialization) is used, providers can be ena
     .UseSerilog(
         (hostingContext, loggerConfiguration) => /* snip! */,
         writeToProviders: true)
+```
+
+### JSON output
+
+The `Console()`, `Debug()`, and `File()` sinks all support JSON-formatted output natively, via the included _Serilog.Formatting.Compact_ package.
+
+To write newline-delimited JSON, pass a `CompactJsonFormatter` or `RenderedCompactJsonFormatter` to the sink configuration method:
+
+```csharp
+    .WriteTo.Console(new RenderedCompactJsonFormatter())
 ```
 
 ### Writing to the Azure Diagnostics Log Stream
