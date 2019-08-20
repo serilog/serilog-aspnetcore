@@ -7,11 +7,9 @@
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <AssemblyName>Serilog.AspNetCore</AssemblyName>
     <AssemblyOriginatorKeyFile>../../assets/Serilog.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <PackageId>Serilog.AspNetCore</PackageId>
     <PackageTags>serilog;aspnet;aspnetcore</PackageTags>
     <PackageIconUrl>http://serilog.net/images/serilog-extension-nuget.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/serilog/serilog-aspnetcore</PackageProjectUrl>
