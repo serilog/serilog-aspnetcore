@@ -21,6 +21,7 @@ namespace EarlyInitializationSample
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(Configuration)
                 .Enrich.FromLogContext()
+                .WriteTo.Debug()
                 .WriteTo.Console(
                     // {Properties:j} added:
                     outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} " +
