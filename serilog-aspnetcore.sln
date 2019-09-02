@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{9C21B9
 	ProjectSection(SolutionItems) = preProject
 		appveyor.yml = appveyor.yml
 		Build.ps1 = Build.ps1
+		CHANGES.md = CHANGES.md
 		global.json = global.json
 		README.md = README.md
 		assets\Serilog.snk = assets\Serilog.snk

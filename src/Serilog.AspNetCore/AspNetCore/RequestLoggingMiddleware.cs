@@ -30,7 +30,7 @@ namespace Serilog.AspNetCore
         readonly DiagnosticContext _diagnosticContext;
         readonly MessageTemplate _messageTemplate;
 
-        static readonly LogEventProperty[] NoProperties = new LogEventProperty[0];
+        static readonly LogEventProperty[] NoProperties = Array.Empty<LogEventProperty>();
 
         public RequestLoggingMiddleware(RequestDelegate next, DiagnosticContext diagnosticContext, RequestLoggingOptions options)
         {
