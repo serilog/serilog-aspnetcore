@@ -70,9 +70,10 @@ namespace Serilog.AspNetCore
 
         bool LogCompletion(HttpContext httpContext, DiagnosticContextCollector collector, int statusCode, double elapsedMs, Exception ex)
         {
+            var logger = Log.ForContext<RequestLoggingMiddleware>();
             var level = statusCode > 499 ? LogEventLevel.Error : LogEventLevel.Information;
 
-            if (!Log.IsEnabled(level)) return false;
+            if (!logger.IsEnabled(level)) return false;
             
             if (!collector.TryComplete(out var collectedProperties))
                 collectedProperties = NoProperties;
@@ -87,7 +88,7 @@ namespace Serilog.AspNetCore
             });
 
             var evt = new LogEvent(DateTimeOffset.Now, level, ex, _messageTemplate, properties);
-            Log.Write(evt);
+            logger.Write(evt);
 
             return false;
         }
