@@ -39,8 +39,8 @@ namespace Serilog
         /// default, only Serilog sinks will receive events.</param>
         /// <returns>The web host builder.</returns>
         public static IWebHostBuilder UseSerilog(
-            this IWebHostBuilder builder, 
-            ILogger logger = null, 
+            this IWebHostBuilder builder,
+            ILogger logger = null,
             bool dispose = false,
             LoggerProviderCollection providers = null)
         {
@@ -89,6 +89,28 @@ namespace Serilog
             bool preserveStaticLogger = false,
             bool writeToProviders = false)
         {
+            return builder.UseSerilog((_, context, configuration) => configureLogger(context, configuration), preserveStaticLogger, writeToProviders);
+        }
+
+
+        /// <summary>Sets Serilog as the logging provider.</summary>
+        /// <remarks>
+        /// A <see cref="IWebHostBuilder"/> and <see cref="WebHostBuilderContext"/> are supplied so that configuration and hosting information can be used.
+        /// The logger will be shut down when application services are disposed.
+        /// </remarks>
+        /// <param name="builder">The web host builder to configure.</param>
+        /// <param name="configureLogger">The delegate for configuring the <see cref="LoggerConfiguration" /> that will be used to construct a <see cref="Logger" />.</param>
+        /// <param name="preserveStaticLogger">Indicates whether to preserve the value of <see cref="Log.Logger"/>.</param>
+        /// <param name="writeToProviders">By default, Serilog does not write events to <see cref="ILoggerProvider"/>s registered through
+        /// the Microsoft.Extensions.Logging API. Normally, equivalent Serilog sinks are used in place of providers. Specify
+        /// <c>true</c> to write events to all providers.</param>
+        /// <returns>The web host builder.</returns>
+        public static IWebHostBuilder UseSerilog(
+        this IWebHostBuilder builder,
+        Action<IWebHostBuilder, WebHostBuilderContext, LoggerConfiguration> configureLogger,
+        bool preserveStaticLogger = false,
+        bool writeToProviders = false)
+        {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             if (configureLogger == null) throw new ArgumentNullException(nameof(configureLogger));
 
@@ -103,9 +125,9 @@ namespace Serilog
                     loggerConfiguration.WriteTo.Providers(loggerProviders);
                 }
 
-                configureLogger(context, loggerConfiguration);
+                configureLogger(builder, context, loggerConfiguration);
                 var logger = loggerConfiguration.CreateLogger();
-                
+
                 ILogger registeredLogger = null;
                 if (preserveStaticLogger)
                 {
@@ -135,7 +157,7 @@ namespace Serilog
             });
             return builder;
         }
-        
+
         static void ConfigureServices(IServiceCollection collection, ILogger logger)
         {
             if (collection == null) throw new ArgumentNullException(nameof(collection));
