@@ -12,35 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Serilog.Events;
 using Serilog.Extensions.Hosting;
 using Serilog.Parsing;
+using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Serilog.AspNetCore
 {
-    class RequestLoggingMiddleware
+    internal class RequestLoggingMiddleware
     {
         readonly RequestDelegate _next;
         readonly DiagnosticContext _diagnosticContext;
         readonly MessageTemplate _messageTemplate;
-        readonly Func<HttpStatusCode, LogEventLevel> _getLogEventLevel;
-
+        readonly Func<HttpContext, LogEventLevel> _getLogLevel;
         static readonly LogEventProperty[] NoProperties = new LogEventProperty[0];
-        
+
         public RequestLoggingMiddleware(RequestDelegate next, DiagnosticContext diagnosticContext, RequestLoggingOptions options)
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
             _next = next ?? throw new ArgumentNullException(nameof(next));
             _diagnosticContext = diagnosticContext ?? throw new ArgumentNullException(nameof(diagnosticContext));
 
-            _getLogEventLevel = options.GetLogEventLevel;
+            _getLogLevel = options.GetLogLevel;
             _messageTemplate = new MessageTemplateParser().Parse(options.MessageTemplate);
         }
 
@@ -71,13 +69,13 @@ namespace Serilog.AspNetCore
             }
         }
 
-        bool LogCompletion(HttpContext httpContext, DiagnosticContextCollector collector, int statusCode, double elapsedMs, Exception ex)
+        private bool LogCompletion(HttpContext httpContext, DiagnosticContextCollector collector, int statusCode, double elapsedMs, Exception ex)
         {
             var logger = Log.ForContext<RequestLoggingMiddleware>();
-            var level = _getLogEventLevel((HttpStatusCode)statusCode);
-            
+            var level = _getLogLevel(httpContext);
+
             if (!logger.IsEnabled(level)) return false;
-            
+
             if (!collector.TryComplete(out var collectedProperties))
                 collectedProperties = NoProperties;
 

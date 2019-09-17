@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Microsoft.AspNetCore.Http;
 using Serilog.Events;
 using System;
-using System.Net;
 
-namespace Serilog
+namespace Serilog.AspNetCore
 {
     /// <summary>
-    /// Contains options for the Serilog.AspNetCore.RequestLoggingMiddleware.
+    /// Contains options for the <see cref="Serilog.AspNetCore.RequestLoggingMiddleware"/>.
     /// </summary>
     public class RequestLoggingOptions
     {
@@ -35,13 +35,13 @@ namespace Serilog
         public string MessageTemplate { get; set; }
 
         /// <summary>
-        /// Gets or sets the function returning the LogEventLevel based on the HttpStatusCode.
+        /// Gets or sets the function returning the <see cref="LogEventLevel"/> based on the current <see cref="HttpContext"/>.
         /// The default behavior returns LogEventLevel.Error when HttpStatusCode is greater than 499
         /// </summary>
         /// <value>
-        /// The function returning the LogEventLevel.
+        /// The function returning the <see cref="LogEventLevel"/>.
         /// </value>
-        public Func<HttpStatusCode, LogEventLevel> GetLogEventLevel { get; set; }
+        public Func<HttpContext, LogEventLevel> GetLogLevel { get; set; }
 
         internal RequestLoggingOptions() { }
     }

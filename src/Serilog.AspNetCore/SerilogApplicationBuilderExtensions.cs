@@ -15,6 +15,7 @@
 using System;
 using System.Net;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Serilog.AspNetCore;
 using Serilog.Events;
@@ -29,8 +30,8 @@ namespace Serilog
         const string DefaultRequestCompletionMessageTemplate =
             "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
 
-        static readonly Func<HttpStatusCode, LogEventLevel> DefaultGetLogEventLevel = 
-            s => (int) s > 499 ? LogEventLevel.Error : LogEventLevel.Information;
+        static Func<HttpContext, LogEventLevel> DefaultGetLogLevel = 
+            ctx => ctx.Response.StatusCode > 499 ? LogEventLevel.Error : LogEventLevel.Information;
 
         /// <summary>
         /// Adds middleware for streamlined request logging. Instead of writing HTTP request information
@@ -60,7 +61,7 @@ namespace Serilog
         /// in <c>Startup.cs</c> before any handlers whose activities should be logged.
         /// </summary>
         /// <param name="app">The application builder.</param>
-        /// <param name="configureOptions"> An System.Action`1 to configure the provided <see cref="Serilog.RequestLoggingOptions" />.</param>
+        /// <param name="configureOptions">A <see cref="System.Action{T}" /> to configure the provided <see cref="RequestLoggingOptions" />.</param>
         /// <returns>The application builder.</returns>
         public static IApplicationBuilder UseSerilogRequestLogging(
             this IApplicationBuilder app,
@@ -70,15 +71,15 @@ namespace Serilog
             
             var opts = new RequestLoggingOptions
             {
-                GetLogEventLevel = DefaultGetLogEventLevel,
+                GetLogLevel = DefaultGetLogLevel,
                 MessageTemplate = DefaultRequestCompletionMessageTemplate
             };
             configureOptions?.Invoke(opts);
 
             if (opts.MessageTemplate == null)
                 throw new ArgumentException($"{nameof(opts.MessageTemplate)} cannot be null.");
-            if (opts.GetLogEventLevel == null)
-                throw new ArgumentException($"{nameof(opts.GetLogEventLevel)} cannot be null.");
+            if (opts.GetLogLevel == null)
+                throw new ArgumentException($"{nameof(opts.GetLogLevel)} cannot be null.");
 
             return app.UseMiddleware<RequestLoggingMiddleware>(opts);
         }
