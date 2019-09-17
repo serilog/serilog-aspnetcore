@@ -15,6 +15,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -29,15 +30,17 @@ namespace Serilog.AspNetCore
         readonly RequestDelegate _next;
         readonly DiagnosticContext _diagnosticContext;
         readonly MessageTemplate _messageTemplate;
+        readonly Func<HttpStatusCode, LogEventLevel> _getLogEventLevel;
 
         static readonly LogEventProperty[] NoProperties = new LogEventProperty[0];
-
+        
         public RequestLoggingMiddleware(RequestDelegate next, DiagnosticContext diagnosticContext, RequestLoggingOptions options)
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
             _next = next ?? throw new ArgumentNullException(nameof(next));
             _diagnosticContext = diagnosticContext ?? throw new ArgumentNullException(nameof(diagnosticContext));
 
+            _getLogEventLevel = options.GetLogEventLevel;
             _messageTemplate = new MessageTemplateParser().Parse(options.MessageTemplate);
         }
 
@@ -71,8 +74,8 @@ namespace Serilog.AspNetCore
         bool LogCompletion(HttpContext httpContext, DiagnosticContextCollector collector, int statusCode, double elapsedMs, Exception ex)
         {
             var logger = Log.ForContext<RequestLoggingMiddleware>();
-            var level = statusCode > 499 ? LogEventLevel.Error : LogEventLevel.Information;
-
+            var level = _getLogEventLevel((HttpStatusCode)statusCode);
+            
             if (!logger.IsEnabled(level)) return false;
             
             if (!collector.TryComplete(out var collectedProperties))

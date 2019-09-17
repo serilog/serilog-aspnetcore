@@ -13,8 +13,11 @@
 // limitations under the License.
 
 using System;
+using System.Net;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Options;
 using Serilog.AspNetCore;
+using Serilog.Events;
 
 namespace Serilog
 {
@@ -25,6 +28,9 @@ namespace Serilog
     {
         const string DefaultRequestCompletionMessageTemplate =
             "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+
+        static readonly Func<HttpStatusCode, LogEventLevel> DefaultGetLogEventLevel = 
+            s => (int) s > 499 ? LogEventLevel.Error : LogEventLevel.Information;
 
         /// <summary>
         /// Adds middleware for streamlined request logging. Instead of writing HTTP request information
@@ -43,11 +49,38 @@ namespace Serilog
         /// <returns>The application builder.</returns>
         public static IApplicationBuilder UseSerilogRequestLogging(
             this IApplicationBuilder app,
-            string messageTemplate = DefaultRequestCompletionMessageTemplate)
+            string messageTemplate)
+            => app.UseSerilogRequestLogging(opts => opts.MessageTemplate = messageTemplate);
+
+        /// <summary>
+        /// Adds middleware for streamlined request logging. Instead of writing HTTP request information
+        /// like method, path, timing, status code and exception details
+        /// in several events, this middleware collects information during the request (including from
+        /// <see cref="IDiagnosticContext"/>), and writes a single event at request completion. Add this
+        /// in <c>Startup.cs</c> before any handlers whose activities should be logged.
+        /// </summary>
+        /// <param name="app">The application builder.</param>
+        /// <param name="configureOptions"> An System.Action`1 to configure the provided <see cref="Serilog.RequestLoggingOptions" />.</param>
+        /// <returns>The application builder.</returns>
+        public static IApplicationBuilder UseSerilogRequestLogging(
+            this IApplicationBuilder app,
+            Action<RequestLoggingOptions> configureOptions = null)
         {
             if (app == null) throw new ArgumentNullException(nameof(app));
-            if (messageTemplate == null) throw new ArgumentNullException(nameof(messageTemplate));
-            return app.UseMiddleware<RequestLoggingMiddleware>(new RequestLoggingOptions(messageTemplate));
+            
+            var opts = new RequestLoggingOptions
+            {
+                GetLogEventLevel = DefaultGetLogEventLevel,
+                MessageTemplate = DefaultRequestCompletionMessageTemplate
+            };
+            configureOptions?.Invoke(opts);
+
+            if (opts.MessageTemplate == null)
+                throw new ArgumentException($"{nameof(opts.MessageTemplate)} cannot be null.");
+            if (opts.GetLogEventLevel == null)
+                throw new ArgumentException($"{nameof(opts.GetLogEventLevel)} cannot be null.");
+
+            return app.UseMiddleware<RequestLoggingMiddleware>(opts);
         }
     }
 }

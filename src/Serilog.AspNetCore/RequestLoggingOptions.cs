@@ -12,17 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Serilog.Events;
 using System;
+using System.Net;
 
 namespace Serilog
 {
-    class RequestLoggingOptions
+    /// <summary>
+    /// Contains options for the Serilog.AspNetCore.RequestLoggingMiddleware.
+    /// </summary>
+    public class RequestLoggingOptions
     {
-        public string MessageTemplate { get; }
+        /// <summary>
+        /// Gets or sets the message template. The default value is
+        /// <c>"HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms"</c>. The
+        /// template can contain any of the placeholders from the default template, names of properties
+        /// added by ASP.NET Core, and names of properties added to the <see cref="IDiagnosticContext"/>.
+        /// </summary>
+        /// <value>
+        /// The message template.
+        /// </value>
+        public string MessageTemplate { get; set; }
 
-        public RequestLoggingOptions(string messageTemplate)
-        {
-            MessageTemplate = messageTemplate ?? throw new ArgumentNullException(nameof(messageTemplate));
-        }
+        /// <summary>
+        /// Gets or sets the function returning the LogEventLevel based on the HttpStatusCode.
+        /// The default behavior returns LogEventLevel.Error when HttpStatusCode is greater than 499
+        /// </summary>
+        /// <value>
+        /// The function returning the LogEventLevel.
+        /// </value>
+        public Func<HttpStatusCode, LogEventLevel> GetLogEventLevel { get; set; }
+
+        internal RequestLoggingOptions() { }
     }
 }
