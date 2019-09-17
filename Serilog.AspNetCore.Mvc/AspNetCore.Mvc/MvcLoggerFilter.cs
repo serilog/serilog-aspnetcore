@@ -1,23 +1,37 @@
-﻿
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.Abstractions;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
-using Serilog;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 
 namespace Serilog.AspNetCore.Mvc
 {
     /// <summary>
-    /// Supports logging Asp.Net Core Mvc route information.
+    /// Supports logging AspNetCore Mvc route information to Serilog hosting request logging.
     /// </summary>
     public class MvcRequestLoggingFilter : ActionFilterAttribute
     {
-        IDiagnosticContext diag;
+        private const string Name_ActionControllerName = "ControllerActionDescriptor.ControllerName";
+        private const string Name_ActionName = "ControllerActionDescriptor.ActionName";
+        private const string Name_ActionControllerNamespace = "ControllerActionDescriptor.ControllerTypeInfo.Namespace";
+        private const string Name_Template = "ControllerActionDescriptor.AttributeRouteInfo.Template";
+        private const string Name_HostValue = "HttpContext.Request.Host.Value";
+        private const string Name_HostHost = "HttpContext.Request.Host.Host";
+        private const string Name_HostPort = "HttpContext.Request.Host.Post";
+        private const string Name_ActionDisplayName = "ActionDescriptor.DisplayName";
+        private const string Name_TemplateWithHost = "ControllerActionDescriptor.AttributeRouteInfo.TemplateWithHost";
+        private const string Name_TemplateWithHostJoiner = "/";
+
+        private readonly ILogger<MvcRequestLoggingFilter> _logger;
+        private readonly IDiagnosticContext _diag;
+
         public MvcRequestLoggingFilter(
-            IDiagnosticContext diag)
+            IDiagnosticContext diag,
+            ILogger<MvcRequestLoggingFilter> logger)
         {
-            this.diag = diag;
+            this._logger = logger;
+            this._diag = diag;
         }
 
         /// <summary>
@@ -26,16 +40,18 @@ namespace Serilog.AspNetCore.Mvc
         /// <param name="values"></param>
         /// <param name="context"></param>
         protected virtual void LogHttpContextRequest(
-            Dictionary<string,object> values,
+            IDictionary<string, object> values,
             HttpContext context)
         {
-            var hostValue = context.Request.Host.Value;
-            var hostName = context.Request.Host.Host;
-            var hostPort = context.Request.Host.Port;
+            if (values == null)
+                throw new ArgumentNullException(nameof(values));
 
-            Add(values, "HttpContext.Request.Host.Value", hostValue);
-            Add(values, "HttpContext.Request.Host.Host", hostName);
-            Add(values, "HttpContext.Request.Host.Port", hostPort);
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
+            Add(values, Name_HostValue, context.Request.Host.Value);
+            Add(values, Name_HostHost, context.Request.Host.Host);
+            Add(values, Name_HostPort, context.Request.Host.Port);
         }
 
         /// <summary>
@@ -44,11 +60,16 @@ namespace Serilog.AspNetCore.Mvc
         /// <param name="values"></param>
         /// <param name="context"></param>
         protected virtual void LogControllerExecutingAction(
-             Dictionary<string, object> values, 
+             IDictionary<string, object> values,
              ActionExecutingContext context)
         {
-            var displayName = context.ActionDescriptor.DisplayName;
-            Add(values, "ActionDescriptor.DisplayName", displayName);
+            if (values == null)
+                throw new ArgumentNullException(nameof(values));
+
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
+            Add(values, Name_ActionDisplayName, context.ActionDescriptor.DisplayName);
         }
 
         /// <summary>
@@ -57,22 +78,19 @@ namespace Serilog.AspNetCore.Mvc
         /// <param name="values"></param>
         /// <param name="ctrlActionDesc"></param>
         protected virtual void LogControllerActionDescriptor(
-             Dictionary<string, object> values, 
+             IDictionary<string, object> values,
              ControllerActionDescriptor ctrlActionDesc)
         {
-            var controllerName = ctrlActionDesc.ControllerName;
-            var actionName = ctrlActionDesc.ActionName;
-            var nameSpace = ctrlActionDesc.ControllerTypeInfo.Namespace;
+            if (values == null)
+                throw new ArgumentNullException(nameof(values));
 
-            Add(values, "ControllerActionDescriptor.ControllerName", controllerName);
-            Add(values, "ControllerActionDescriptor.ActionName", actionName);
-            Add(values, "ControllerActionDescriptor.ControllerTypeInfo.Namespace", nameSpace);
+            if (ctrlActionDesc == null)
+                throw new ArgumentNullException(nameof(ctrlActionDesc));
 
-            var routeTemplate = ctrlActionDesc.AttributeRouteInfo.Template;
-
-            Add(values, "ControllerActionDescriptor.AttributeRouteInfo.Template", routeTemplate);
-
-          
+            Add(values, Name_ActionControllerName, ctrlActionDesc.ControllerName);
+            Add(values, Name_ActionName, ctrlActionDesc.ActionName);
+            Add(values, Name_ActionControllerNamespace, ctrlActionDesc.ControllerTypeInfo.Namespace);
+            Add(values, Name_Template, ctrlActionDesc.AttributeRouteInfo.Template);
         }
 
         /// <summary>
@@ -83,12 +101,28 @@ namespace Serilog.AspNetCore.Mvc
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        protected virtual Dictionary<string, object> Add(
-            Dictionary<string, object> values, 
-            string key, 
+        protected virtual IDictionary<string, object> Add(
+            IDictionary<string, object> values,
+            string key,
             object value)
         {
-            values.Add(key, value);
+            if (values == null)
+                throw new ArgumentNullException(nameof(values));
+
+            if (key == null)
+                throw new ArgumentNullException(nameof(key));
+
+            if (value == null)
+                throw new ArgumentNullException(nameof(value));
+
+            if (values.ContainsKey(key))
+            {
+                _logger.LogDebug("Replacing {key} from {existing} to {new} ", key, values[key], value);
+                values[key] = value;
+            }
+            else
+                values.Add(key, value);
+
             return values;
         }
 
@@ -96,24 +130,67 @@ namespace Serilog.AspNetCore.Mvc
         /// Can be used to create or modify the cache of items before they are writen to the IDiagnosticContext
         /// </summary>
         /// <param name="values"></param>
-        protected virtual void LogCompoundValues(Dictionary<string, object>  values)
+        protected virtual void LogConcatenatedValues(IDictionary<string, object> values)
         {
-            LogCompoundValueTemplateWithHost(values);
+            if (values == null)
+                throw new ArgumentNullException(nameof(values));
+
+            LogConcatenateTemplateWithHost(values);
         }
 
         /// <summary>
         /// Built in compoud writer which combines the host and the MVC template.
         /// </summary>
         /// <param name="values"></param>
-        protected virtual void LogCompoundValueTemplateWithHost(Dictionary<string, object> values)
+        protected virtual void LogConcatenateTemplateWithHost(IDictionary<string, object> values)
         {
-            var template = values["ControllerActionDescriptor.AttributeRouteInfo.Template"];
-            var host = values["HttpContext.Request.Host.Value"];
-            var templateWithHost = host + "/" + template;
+            if (values == null)
+                throw new ArgumentNullException(nameof(values));
 
-            Add(values,
-                "ControllerActionDescriptor.AttributeRouteInfo.TemplateWithHost",
-                templateWithHost);
+            Concatenate(
+                values,
+                Name_HostValue,
+                Name_Template,
+                Name_TemplateWithHostJoiner,
+                Name_TemplateWithHost);
+        }
+
+        /// <summary>
+        /// Takes the value of 2 previously logged values and joins them into one.
+        /// </summary>
+        /// <param name="values"></param>
+        /// <param name="name1"></param>
+        /// <param name="name2"></param>
+        /// <param name="joinWith"></param>
+        /// <param name="newName"></param>
+        protected virtual void Concatenate(
+            IDictionary<string, object> values,
+            string name1,
+            string name2,
+            string joinWith,
+            string newName)
+        {
+            if (values == null)
+                throw new ArgumentNullException(nameof(values));
+
+            if (name1 == null)
+                throw new ArgumentNullException(nameof(name1));
+
+            if (name2 == null)
+                throw new ArgumentNullException(nameof(name2));
+
+            if (joinWith == null)
+                throw new ArgumentNullException(nameof(joinWith));
+
+            if (newName == null)
+                throw new ArgumentNullException(nameof(newName));
+
+            if (values.ContainsKey(name1) && values.ContainsKey(name2))
+                Add(values,
+                    newName,
+                    values[name1] + joinWith + values[name2]);
+            else
+                _logger.LogDebug("Cannot concatenate {name1} and {name2} as one or more do not exist. ", name1, name2);
 
         }
 
@@ -121,45 +198,103 @@ namespace Serilog.AspNetCore.Mvc
         /// Writes the values supplied to the IDiagnosticContext for this request.
         /// </summary>
         /// <param name="values"></param>
-        protected virtual void SetDiagFromValues(Dictionary<string, object> values)
+        protected virtual void WriteToDiagnosticsContext(IDictionary<string, object> values)
         {
+            if (values == null)
+                throw new ArgumentNullException(nameof(values));
+
             foreach (var value in values)
             {
-                diag.Set(value.Key, value.Value);
+                if (value.Key != null && value.Value != null)
+                {
+                    _logger.LogDebug("Logging to IDiagnosticContext: {name} {value}", value.Key, value.Value);
+                    _diag.Set(value.Key, value.Value);
+                }
+                else
+                    _logger.LogDebug(
+                        "Not Logging to IDiagnosticContext as key and/or value are null, {name} {value}",
+                        value.Key ?? string.Empty,
+                        value.Value ?? string.Empty);
             }
         }
 
         /// <summary>
-        /// Overrides the ActionFilterAttribute. Calls the built in log writers, compound and then finshes by writing to
+        /// Creates a default dictionary for value storage.
+        /// </summary>
+        /// <returns></returns>
+        protected virtual IDictionary<string, object> InitializeValueStore()
+        {
+            return new Dictionary<string, object>();
+        }
+
+        /// <summary>
+        /// Logs values from properties in ActionExecutingContext and child objects.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="values"></param>
+        protected virtual void LogRawValues(
+            ActionExecutingContext context, 
+            IDictionary<string, object> values)
+        {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
+            if (values == null)
+                throw new ArgumentNullException(nameof(values));
+
+            if (context.HttpContext != null)
+                LogHttpContextRequest(values, context.HttpContext);
+            else
+                _logger.LogDebug("OnActionExecuting parameter context.HttpContext of type HttpContext is null, skipping Mvc logging LogHttpContextRequest.");
+
+            if (context.ModelState.IsValid)
+            {
+                LogControllerExecutingAction(values, context);
+
+                if (context.ActionDescriptor is ControllerActionDescriptor ctrlActionDesc)
+                    LogControllerActionDescriptor(values, ctrlActionDesc);
+                else
+                    _logger.LogDebug("OnActionExecuting parameter context.ActionDescriptor of type ControllerActionDescriptor is null, skipping Mvc logging LogControllerActionDescriptor.");
+            }
+            else
+                _logger.LogDebug("OnActionExecuting parameter context.ModelState.IsValid is false skipping some Mvc logging.");
+        }
+
+        /// <summary>
+        /// Logs Raw values and concatenated values.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="values"></param>
+        protected virtual void Log(
+            ActionExecutingContext context, 
+            IDictionary<string, object> values)
+        {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
+            if (values == null)
+                throw new ArgumentNullException(nameof(values));
+
+            LogRawValues(context, values);
+            LogConcatenatedValues(values);
+        }
+
+        /// <summary>
+        /// Overrides the ActionFilterAttribute. Calls the built in log writers, compound and then finishes by writing to
         /// IDiagnosticContext by calling SetDiagFromValues.
         /// </summary>
         /// <param name="context"></param>
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            var values = new Dictionary<string, object>();
             if (context == null)
+            {
+                _logger.LogDebug("OnActionExecuting parameter context of type ActionExecutingContext is null, skipping Mvc logging.");
                 return;
-
-            if(context.HttpContext!=null)
-            {
-                LogHttpContextRequest(values, context.HttpContext);
             }
 
-            if (context.ModelState.IsValid)
-            {
-
-                if(context!=null)
-                {
-                    LogControllerExecutingAction(values, context);
-                }
-
-                var ctrlActionDesc = context.ActionDescriptor as ControllerActionDescriptor;
-                if(ctrlActionDesc!=null)
-                    LogControllerActionDescriptor(values, ctrlActionDesc);
-            }
-
-            LogCompoundValues(values);
-            SetDiagFromValues(values);
+            var values = InitializeValueStore();
+            Log(context, values);
+            WriteToDiagnosticsContext(values);
         }
     }
 }
