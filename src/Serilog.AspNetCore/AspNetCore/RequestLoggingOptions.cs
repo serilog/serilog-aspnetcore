@@ -41,7 +41,7 @@ namespace Serilog.AspNetCore
         /// <value>
         /// The function returning the <see cref="LogEventLevel"/>.
         /// </value>
-        public Func<HttpContext, LogEventLevel> GetLogLevel { get; set; }
+        public Func<HttpContext, LogEventLevel> GetLevel { get; set; }
 
         internal RequestLoggingOptions() { }
     }

@@ -13,10 +13,8 @@
 // limitations under the License.
 
 using System;
-using System.Net;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 using Serilog.AspNetCore;
 using Serilog.Events;
 
@@ -30,7 +28,7 @@ namespace Serilog
         const string DefaultRequestCompletionMessageTemplate =
             "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
 
-        static Func<HttpContext, LogEventLevel> DefaultGetLogLevel = 
+        static Func<HttpContext, LogEventLevel> DefaultGetLevel = 
             ctx => ctx.Response.StatusCode > 499 ? LogEventLevel.Error : LogEventLevel.Information;
 
         /// <summary>
@@ -71,15 +69,15 @@ namespace Serilog
             
             var opts = new RequestLoggingOptions
             {
-                GetLogLevel = DefaultGetLogLevel,
+                GetLevel = DefaultGetLevel,
                 MessageTemplate = DefaultRequestCompletionMessageTemplate
             };
             configureOptions?.Invoke(opts);
 
             if (opts.MessageTemplate == null)
                 throw new ArgumentException($"{nameof(opts.MessageTemplate)} cannot be null.");
-            if (opts.GetLogLevel == null)
-                throw new ArgumentException($"{nameof(opts.GetLogLevel)} cannot be null.");
+            if (opts.GetLevel == null)
+                throw new ArgumentException($"{nameof(opts.GetLevel)} cannot be null.");
 
             return app.UseMiddleware<RequestLoggingMiddleware>(opts);
         }
