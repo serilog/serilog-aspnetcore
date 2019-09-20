@@ -29,7 +29,7 @@ namespace Serilog.AspNetCore
         readonly RequestDelegate _next;
         readonly DiagnosticContext _diagnosticContext;
         readonly MessageTemplate _messageTemplate;
-        readonly Func<HttpContext, LogEventLevel> _getLevel;
+        readonly Func<HttpContext, Exception, LogEventLevel> _getLevel;
         static readonly LogEventProperty[] NoProperties = new LogEventProperty[0];
 
         public RequestLoggingMiddleware(RequestDelegate next, DiagnosticContext diagnosticContext, RequestLoggingOptions options)
@@ -72,7 +72,7 @@ namespace Serilog.AspNetCore
         bool LogCompletion(HttpContext httpContext, DiagnosticContextCollector collector, int statusCode, double elapsedMs, Exception ex)
         {
             var logger = Log.ForContext<RequestLoggingMiddleware>();
-            var level = _getLevel(httpContext);
+            var level = _getLevel(httpContext, ex);
 
             if (!logger.IsEnabled(level)) return false;
 
@@ -98,7 +98,7 @@ namespace Serilog.AspNetCore
         {
             return (stop - start) * 1000 / (double)Stopwatch.Frequency;
         }
-        
+
         static string GetPath(HttpContext httpContext)
         {
             return httpContext.Features.Get<IHttpRequestFeature>()?.RawTarget ?? httpContext.Request.Path.ToString();

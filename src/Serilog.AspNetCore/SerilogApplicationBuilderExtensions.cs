@@ -28,8 +28,12 @@ namespace Serilog
         const string DefaultRequestCompletionMessageTemplate =
             "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
 
-        static Func<HttpContext, LogEventLevel> DefaultGetLevel = 
-            ctx => ctx.Response.StatusCode > 499 ? LogEventLevel.Error : LogEventLevel.Information;
+        static Func<HttpContext, Exception, LogEventLevel> DefaultGetLevel =
+            (ctx, ex) => ex != null
+                ? LogEventLevel.Error 
+                : ctx.Response.StatusCode > 499 
+                    ? LogEventLevel.Error 
+                    : LogEventLevel.Information;
 
         /// <summary>
         /// Adds middleware for streamlined request logging. Instead of writing HTTP request information

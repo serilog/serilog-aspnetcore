@@ -35,13 +35,13 @@ namespace Serilog.AspNetCore
         public string MessageTemplate { get; set; }
 
         /// <summary>
-        /// Gets or sets the function returning the <see cref="LogEventLevel"/> based on the current <see cref="HttpContext"/>.
-        /// The default behavior returns LogEventLevel.Error when HttpStatusCode is greater than 499
+        /// Gets or sets the function returning the <see cref="LogEventLevel"/> based on the <see cref="HttpContext"/> and on the <see cref="Exception" /> if something wrong happend 
+        /// The default behavior returns LogEventLevel.Error when HttpStatusCode is greater than 499 or if Exception is not null.
         /// </summary>
         /// <value>
         /// The function returning the <see cref="LogEventLevel"/>.
         /// </value>
-        public Func<HttpContext, LogEventLevel> GetLevel { get; set; }
+        public Func<HttpContext, Exception, LogEventLevel> GetLevel { get; set; }
 
         internal RequestLoggingOptions() { }
     }
