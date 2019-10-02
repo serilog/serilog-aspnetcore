@@ -28,8 +28,8 @@ namespace Serilog
         const string DefaultRequestCompletionMessageTemplate =
             "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
 
-        static Func<HttpContext, Exception, LogEventLevel> DefaultGetLevel =
-            (ctx, ex) => ex != null
+        static readonly Func<HttpContext, double, Exception, LogEventLevel> DefaultGetLevel =
+            (ctx, _, ex) => ex != null
                 ? LogEventLevel.Error 
                 : ctx.Response.StatusCode > 499 
                     ? LogEventLevel.Error 
