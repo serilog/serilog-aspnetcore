@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Serilog.Events;
 using Serilog.Extensions.Hosting;
 using Serilog.Parsing;
+using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Serilog.AspNetCore
 {
@@ -29,7 +29,7 @@ namespace Serilog.AspNetCore
         readonly RequestDelegate _next;
         readonly DiagnosticContext _diagnosticContext;
         readonly MessageTemplate _messageTemplate;
-
+        readonly Func<HttpContext, Exception, LogEventLevel> _getLevel;
         static readonly LogEventProperty[] NoProperties = new LogEventProperty[0];
 
         public RequestLoggingMiddleware(RequestDelegate next, DiagnosticContext diagnosticContext, RequestLoggingOptions options)
@@ -38,6 +38,7 @@ namespace Serilog.AspNetCore
             _next = next ?? throw new ArgumentNullException(nameof(next));
             _diagnosticContext = diagnosticContext ?? throw new ArgumentNullException(nameof(diagnosticContext));
 
+            _getLevel = options.GetLevel;
             _messageTemplate = new MessageTemplateParser().Parse(options.MessageTemplate);
         }
 
@@ -71,10 +72,10 @@ namespace Serilog.AspNetCore
         bool LogCompletion(HttpContext httpContext, DiagnosticContextCollector collector, int statusCode, double elapsedMs, Exception ex)
         {
             var logger = Log.ForContext<RequestLoggingMiddleware>();
-            var level = statusCode > 499 ? LogEventLevel.Error : LogEventLevel.Information;
+            var level = _getLevel(httpContext, ex);
 
             if (!logger.IsEnabled(level)) return false;
-            
+
             if (!collector.TryComplete(out var collectedProperties))
                 collectedProperties = NoProperties;
 
@@ -97,7 +98,7 @@ namespace Serilog.AspNetCore
         {
             return (stop - start) * 1000 / (double)Stopwatch.Frequency;
         }
-        
+
         static string GetPath(HttpContext httpContext)
         {
             return httpContext.Features.Get<IHttpRequestFeature>()?.RawTarget ?? httpContext.Request.Path.ToString();
