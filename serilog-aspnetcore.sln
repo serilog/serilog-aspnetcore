@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26730.12
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29209.62
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A1893BD1-333D-4DFE-A0F0-DDBB2FE526E0}"
 EndProject
@@ -16,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{9C21B9
 		global.json = global.json
 		README.md = README.md
 		assets\Serilog.snk = assets\Serilog.snk
+		Setup.ps1 = Setup.ps1
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.AspNetCore", "src\Serilog.AspNetCore\Serilog.AspNetCore.csproj", "{0549D23F-986B-4FB2-BACE-16FD7A7BC9EF}"
