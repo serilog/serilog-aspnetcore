@@ -205,7 +205,7 @@ Finally, pass the provider collection into `UseSerilog()`:
 
 Providers registered in _Startup.cs_ with `AddLogging()` will then receive events from Serilog.
 
-**Using iniline initialization:**
+**Using inline initialization:**
 
 If [inline initialization](#inline-initialization) is used, providers can be enabled by adding `writeToProviders: true` to the `UseSerilog()` method call:
 
