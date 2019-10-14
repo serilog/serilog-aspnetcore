@@ -109,10 +109,10 @@ Or [as JSON](https://github.com/serilog/serilog-formatting-compact):
 }
 ```
 
-To enable the middleware, first change the minimum level for `Microsoft` to `Warning` in your logger configuration or _appsettings.json_ file:
+To enable the middleware, first change the minimum level for `Microsoft.AspNetCore` to `Warning` in your logger configuration or _appsettings.json_ file:
 
 ```csharp
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
 ```
 
 Then, in your application's _Startup.cs_, add the middleware with `UseSerilogRequestLogging()`:
@@ -205,7 +205,7 @@ Finally, pass the provider collection into `UseSerilog()`:
 
 Providers registered in _Startup.cs_ with `AddLogging()` will then receive events from Serilog.
 
-**Using iniline initialization:**
+**Using inline initialization:**
 
 If [inline initialization](#inline-initialization) is used, providers can be enabled by adding `writeToProviders: true` to the `UseSerilog()` method call:
 

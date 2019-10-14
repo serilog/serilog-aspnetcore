@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Serilog;
 
 namespace EarlyInitializationSample
@@ -23,16 +23,14 @@ namespace EarlyInitializationSample
                 .Enrich.FromLogContext()
                 .WriteTo.Debug()
                 .WriteTo.Console(
-                    // {Properties:j} added:
-                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} " +
-                                    "{Properties:j}{NewLine}{Exception}")
+                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
                 .CreateLogger();
 
             try
             {
                 Log.Information("Getting the motors running...");
 
-                BuildWebHost(args).Run();
+                CreateHostBuilder(args).Build().Run();
 
                 return 0;
             }
@@ -47,11 +45,12 @@ namespace EarlyInitializationSample
             }
         }
 
-        public static IWebHost BuildWebHost(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
-                .UseConfiguration(Configuration)
-                .UseSerilog()
-                .Build();
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                })
+                .UseSerilog();
     }
 }

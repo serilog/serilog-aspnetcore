@@ -2,7 +2,7 @@ version: '{build}'
 skip_tags: true
 image: Visual Studio 2017
 install:
-  - ps: mkdir -Force ".\build\" | Out-Null
+- ps: ./Setup.ps1
 build_script:
 - ps: ./Build.ps1
 test: off
