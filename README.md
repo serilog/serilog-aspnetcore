@@ -134,7 +134,7 @@ Then, in your application's _Startup.cs_, add the middleware with `UseSerilogReq
             // Other app configuration
 ```
 
-It's important that the `UseSerilogRequestLogging()` call appears _before_ handlers such as MVC. The middleware will not time or log components that appear before it in the pipeline. (This can be utilized to exclude noisy handlers from logging, such as `UseStaticFiles()`, by placing `UseSerilogRequestLogging()` after them.)
+It's important that the `UseSerilogRequestLogging()` call appears _before_ handlers such as MVC. The middleware will not time or log components that appear before it in the pipeline. You can override the message template by specifying `messageTemplate`. (This can be utilized to exclude noisy handlers from logging, such as `UseStaticFiles()`, by placing `UseSerilogRequestLogging()` after them.)
 
 During request processing, additional properties can be attached to the completion event using `IDiagnosticContext.Set()`:
 
@@ -158,6 +158,15 @@ During request processing, additional properties can be attached to the completi
 ```
 
 This pattern has the advantage of reducing the number of log events that need to be constructed, transmitted, and stored per HTTP request. Having many properties on the same event can also make correlation of request details and other data easier.
+
+The following request information will be added as log properties:
+
+* `RequestMethod`
+* `RequestScheme`
+* `RequestHost`
+* `RequestPath`
+* `StatusCode`
+* `Elapsed`
 
 ### Inline initialization
 

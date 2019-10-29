@@ -78,11 +78,13 @@ namespace Serilog.AspNetCore
 
             if (!collector.TryComplete(out var collectedProperties))
                 collectedProperties = NoProperties;
-
+            
             // Last-in (correctly) wins...
             var properties = collectedProperties.Concat(new[]
             {
                 new LogEventProperty("RequestMethod", new ScalarValue(httpContext.Request.Method)),
+                new LogEventProperty("RequestHost", new ScalarValue(httpContext.Request.Host.Value)),
+                new LogEventProperty("RequestScheme", new ScalarValue(httpContext.Request.Scheme)),
                 new LogEventProperty("RequestPath", new ScalarValue(GetPath(httpContext))),
                 new LogEventProperty("StatusCode", new ScalarValue(statusCode)),
                 new LogEventProperty("Elapsed", new ScalarValue(elapsedMs))
