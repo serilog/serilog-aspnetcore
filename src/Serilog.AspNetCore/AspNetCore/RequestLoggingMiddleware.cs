@@ -78,7 +78,7 @@ namespace Serilog.AspNetCore
 
             if (!collector.TryComplete(out var collectedProperties))
                 collectedProperties = NoProperties;
-            
+
             // Last-in (correctly) wins...
             var properties = collectedProperties.Concat(new[]
             {
