@@ -45,6 +45,11 @@ namespace Serilog.AspNetCore
         /// </value>
         public Func<HttpContext, double, Exception, LogEventLevel> GetLevel { get; set; }
 
+        /// <summary>
+        /// Gets or sets the action that allows you to enrich the diagnostic context
+        /// </summary>
+        public Action<IDiagnosticContext, HttpContext> EnrichDiagnosticContext { get; set; }
+
         internal RequestLoggingOptions() { }
     }
 }

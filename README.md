@@ -162,11 +162,22 @@ This pattern has the advantage of reducing the number of log events that need to
 The following request information will be added as log properties:
 
 * `RequestMethod`
-* `RequestScheme`
-* `RequestHost`
 * `RequestPath`
 * `StatusCode`
 * `Elapsed`
+
+Not enough? You can extend the information that is being emitted by using `options.EnrichDiagnosticContext`:
+
+```csharp
+app.UseSerilogRequestLogging(options =>
+{
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+        diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+    };
+});
+```
 
 ### Inline initialization
 

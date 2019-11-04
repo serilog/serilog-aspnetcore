@@ -30,8 +30,15 @@ namespace EarlyInitializationSample
             // Write streamlined request completion events, instead of the more verbose ones from the framework.
             // To use the default framework request logging instead, remove this line and set the "Microsoft"
             // level in appsettings.json to "Information".
-            app.UseSerilogRequestLogging();
-
+            app.UseSerilogRequestLogging(options =>
+            {
+                options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+                {
+                    diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+                    diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+                };
+            });
+            
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
