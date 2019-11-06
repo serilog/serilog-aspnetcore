@@ -35,15 +35,20 @@ namespace Serilog.AspNetCore
         public string MessageTemplate { get; set; }
 
         /// <summary>
-        /// Gets or sets the function returning the <see cref="LogEventLevel"/> based on the <see cref="HttpContext"/>, the number of
+        /// A function returning the <see cref="LogEventLevel"/> based on the <see cref="HttpContext"/>, the number of
         /// elapsed milliseconds required for handling the request, and an <see cref="Exception" /> if one was thrown.
         /// The default behavior returns <see cref="LogEventLevel.Error"/> when the response status code is greater than 499 or if the
         /// <see cref="Exception"/> is not null.
         /// </summary>
         /// <value>
-        /// The function returning the <see cref="LogEventLevel"/>.
+        /// A function returning the <see cref="LogEventLevel"/>.
         /// </value>
         public Func<HttpContext, double, Exception, LogEventLevel> GetLevel { get; set; }
+
+        /// <summary>
+        /// A callback that can be used to set additional properties on the request completion event.
+        /// </summary>
+        public Action<IDiagnosticContext, HttpContext> EnrichDiagnosticContext { get; set; }
 
         internal RequestLoggingOptions() { }
     }

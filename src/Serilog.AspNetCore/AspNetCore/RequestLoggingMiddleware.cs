@@ -29,6 +29,7 @@ namespace Serilog.AspNetCore
         readonly RequestDelegate _next;
         readonly DiagnosticContext _diagnosticContext;
         readonly MessageTemplate _messageTemplate;
+        readonly Action<IDiagnosticContext, HttpContext> _enrichDiagnosticContext;
         readonly Func<HttpContext, double, Exception, LogEventLevel> _getLevel;
         static readonly LogEventProperty[] NoProperties = new LogEventProperty[0];
 
@@ -39,6 +40,7 @@ namespace Serilog.AspNetCore
             _diagnosticContext = diagnosticContext ?? throw new ArgumentNullException(nameof(diagnosticContext));
 
             _getLevel = options.GetLevel;
+            _enrichDiagnosticContext = options.EnrichDiagnosticContext;
             _messageTemplate = new MessageTemplateParser().Parse(options.MessageTemplate);
         }
 
@@ -78,6 +80,9 @@ namespace Serilog.AspNetCore
 
             if (!collector.TryComplete(out var collectedProperties))
                 collectedProperties = NoProperties;
+
+            // Enrich diagnostic context
+            _enrichDiagnosticContext?.Invoke(_diagnosticContext, httpContext);
 
             // Last-in (correctly) wins...
             var properties = collectedProperties.Concat(new[]
