@@ -82,7 +82,7 @@ That's it! With the level bumped up a little you will see log output resembling:
 
 A more complete example, showing `appsettings.json` configuration, can be found in [the sample project here](https://github.com/serilog/serilog-aspnetcore/tree/dev/samples/EarlyInitializationSample).
 
-### Request logging <sup>`3.0.0`</sup>
+### Request logging
 
 The package includes middleware for smarter HTTP request logging. The default request logging implemented by ASP.NET Core is noisy, with multiple events emitted per request. The included middleware condenses these into a single event that carries method, path, status code, and timing information.
 
@@ -203,7 +203,7 @@ If this method is used, `Log.Logger` is assigned implicitly, and closed when the
 
 A complete example, showing this approach, can be found in [the _InlineIntializationSample_ project](https://github.com/serilog/serilog-aspnetcore/tree/dev/samples/InlineInitializationSample).
 
-### Enabling `Microsoft.Extensions.Logging.ILoggerProvider`s <sup>`3.0.0-*`</sup>
+### Enabling `Microsoft.Extensions.Logging.ILoggerProvider`s
 
 Serilog sends events to outputs called _sinks_, that implement Serilog's `ILogEventSink` interface, and are added to the logging pipeline using `WriteTo`. _Microsoft.Extensions.Logging_ has a similar concept called _providers_, and these implement `ILoggerProvider`. Providers are what the default logging configuration creates under the hood through methods like `AddConsole()`.
 
