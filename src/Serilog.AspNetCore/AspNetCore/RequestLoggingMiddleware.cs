@@ -78,11 +78,11 @@ namespace Serilog.AspNetCore
 
             if (!logger.IsEnabled(level)) return false;
 
-            if (!collector.TryComplete(out var collectedProperties))
-                collectedProperties = NoProperties;
-
             // Enrich diagnostic context
             _enrichDiagnosticContext?.Invoke(_diagnosticContext, httpContext);
+
+            if (!collector.TryComplete(out var collectedProperties))
+                collectedProperties = NoProperties;
 
             // Last-in (correctly) wins...
             var properties = collectedProperties.Concat(new[]
