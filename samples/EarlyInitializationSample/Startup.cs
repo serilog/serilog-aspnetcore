@@ -31,7 +31,7 @@ namespace EarlyInitializationSample
             // To use the default framework request logging instead, remove this line and set the "Microsoft"
             // level in appsettings.json to "Information".
             app.UseSerilogRequestLogging();
-
+            
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
