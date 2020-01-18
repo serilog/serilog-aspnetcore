@@ -11,6 +11,7 @@
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
     <PackageTags>serilog;aspnet;aspnetcore</PackageTags>
+    <PackageIcon>serilog-extension-nuget.png</PackageIcon>
     <PackageIconUrl>https://serilog.net/images/serilog-extension-nuget.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/serilog/serilog-aspnetcore</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
@@ -19,6 +20,10 @@
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <RootNamespace>Serilog</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="images/serilog-extension-nuget.png" Pack="true" PackagePath="/" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.9.0" />
@@ -38,6 +43,7 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.*" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.*" />
   </ItemGroup>
