@@ -31,7 +31,7 @@ public class Program
         try
         {
             Log.Information("Starting web host");
-            CreateWebHostBuilder(args).Build().Run();
+            CreateHostBuilder(args).Build().Run();
             return 0;
         }
         catch (Exception ex)
@@ -46,21 +46,22 @@ public class Program
     }
 ```
 
-**Then**, add `UseSerilog()` to the web host builder in `BuildWebHost()`.
+**Then**, add `UseSerilog()` to the Generic Host in `CreateHostBuilder()`.
 
 ```csharp        
-    public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
+    public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                })
                 .UseSerilog(); // <-- Add this line;
 }
 ```
 
 **Finally**, clean up by removing the remaining configuration for the default logger:
 
- * Remove calls to `AddLogging()`
  * Remove the `"Logging"` section from _appsettings.json_ files (this can be replaced with [Serilog configuration](https://github.com/serilog/serilog-settings-configuration) as shown in [the _EarlyInitializationSample_ project](https://github.com/serilog/serilog-aspnetcore/blob/dev/samples/EarlyInitializationSample/Program.cs), if required)
- * Remove `ILoggerFactory` parameters and any `Add*()` calls on the logger factory in _Startup.cs_
  * Remove `UseApplicationInsights()` (this can be replaced with the [Serilog AI sink](https://github.com/serilog/serilog-sinks-applicationinsights), if required)
 
 That's it! With the level bumped up a little you will see log output resembling:
