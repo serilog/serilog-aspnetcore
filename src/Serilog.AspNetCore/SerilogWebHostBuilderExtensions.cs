@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Serilog.Extensions.Hosting;
 
 namespace Serilog
@@ -65,7 +66,7 @@ namespace Serilog
                     collection.AddSingleton<ILoggerFactory>(services => new SerilogLoggerFactory(logger, dispose));
                 }
 
-                ConfigureServices(collection, logger);
+                ConfigureServices(collection, logger, null);
             });
 
             return builder;
@@ -131,12 +132,12 @@ namespace Serilog
                     return factory;
                 });
 
-                ConfigureServices(collection, logger);
+                ConfigureServices(collection, logger, loggerConfiguration);
             });
             return builder;
         }
         
-        static void ConfigureServices(IServiceCollection collection, ILogger logger)
+        static void ConfigureServices(IServiceCollection collection, ILogger logger, LoggerConfiguration configuration)
         {
             if (collection == null) throw new ArgumentNullException(nameof(collection));
 
@@ -154,6 +155,12 @@ namespace Serilog
 
             // Consumed by user code
             collection.AddSingleton<IDiagnosticContext>(diagnosticContext);
+
+            // May be consumed by user code
+            if (configuration != null)
+            {
+                collection.TryAddSingleton(configuration);
+            }
         }
     }
 }
