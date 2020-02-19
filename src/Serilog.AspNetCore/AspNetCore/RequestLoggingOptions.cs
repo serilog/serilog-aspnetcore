@@ -15,6 +15,7 @@
 using Microsoft.AspNetCore.Http;
 using Serilog.Events;
 using System;
+using System.Threading.Tasks;
 
 namespace Serilog.AspNetCore
 {
@@ -49,6 +50,12 @@ namespace Serilog.AspNetCore
         /// A callback that can be used to set additional properties on the request completion event.
         /// </summary>
         public Action<IDiagnosticContext, HttpContext> EnrichDiagnosticContext { get; set; }
+
+        /// <summary>
+        /// An asynchronous callback that can be used to set additional properties on the request completion event.
+        /// Executed after the synchronous callback if both are provided.
+        /// </summary>
+        public Func<IDiagnosticContext, HttpContext, Task> EnrichDiagnosticContextAsync { get; set; }
 
         internal RequestLoggingOptions() { }
     }

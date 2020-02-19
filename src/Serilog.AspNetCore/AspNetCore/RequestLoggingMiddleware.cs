@@ -30,6 +30,7 @@ namespace Serilog.AspNetCore
         readonly DiagnosticContext _diagnosticContext;
         readonly MessageTemplate _messageTemplate;
         readonly Action<IDiagnosticContext, HttpContext> _enrichDiagnosticContext;
+        readonly Func<IDiagnosticContext, HttpContext, Task> _enrichDiagnosticContextAsync;
         readonly Func<HttpContext, double, Exception, LogEventLevel> _getLevel;
         static readonly LogEventProperty[] NoProperties = new LogEventProperty[0];
 
@@ -41,6 +42,7 @@ namespace Serilog.AspNetCore
 
             _getLevel = options.GetLevel;
             _enrichDiagnosticContext = options.EnrichDiagnosticContext;
+            _enrichDiagnosticContextAsync = options.EnrichDiagnosticContextAsync;
             _messageTemplate = new MessageTemplateParser().Parse(options.MessageTemplate);
         }
 
@@ -57,13 +59,12 @@ namespace Serilog.AspNetCore
                 await _next(httpContext);
                 var elapsedMs = GetElapsedMilliseconds(start, Stopwatch.GetTimestamp());
                 var statusCode = httpContext.Response.StatusCode;
-                LogCompletion(httpContext, collector, statusCode, elapsedMs, null);
+                await LogCompletion(httpContext, collector, statusCode, elapsedMs, null);
             }
             catch (Exception ex)
-                // Never caught, because `LogCompletion()` returns false. This ensures e.g. the developer exception page is still
-                // shown, although it does also mean we see a duplicate "unhandled exception" event from ASP.NET Core.
-                when (LogCompletion(httpContext, collector, 500, GetElapsedMilliseconds(start, Stopwatch.GetTimestamp()), ex))
             {
+                await LogCompletion(httpContext, collector, 500, GetElapsedMilliseconds(start, Stopwatch.GetTimestamp()), ex);
+                throw;
             }
             finally
             {
@@ -71,15 +72,18 @@ namespace Serilog.AspNetCore
             }
         }
 
-        bool LogCompletion(HttpContext httpContext, DiagnosticContextCollector collector, int statusCode, double elapsedMs, Exception ex)
+        async Task LogCompletion(HttpContext httpContext, DiagnosticContextCollector collector, int statusCode, double elapsedMs, Exception ex)
         {
             var logger = Log.ForContext<RequestLoggingMiddleware>();
             var level = _getLevel(httpContext, elapsedMs, ex);
 
-            if (!logger.IsEnabled(level)) return false;
+            if (!logger.IsEnabled(level)) return;
 
             // Enrich diagnostic context
             _enrichDiagnosticContext?.Invoke(_diagnosticContext, httpContext);
+            var task = _enrichDiagnosticContextAsync?.Invoke(_diagnosticContext, httpContext);
+            if (task != null)
+                await task;
 
             if (!collector.TryComplete(out var collectedProperties))
                 collectedProperties = NoProperties;
@@ -95,8 +99,6 @@ namespace Serilog.AspNetCore
 
             var evt = new LogEvent(DateTimeOffset.Now, level, ex, _messageTemplate, properties);
             logger.Write(evt);
-
-            return false;
         }
 
         static double GetElapsedMilliseconds(long start, long stop)
