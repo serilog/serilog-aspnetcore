@@ -135,7 +135,34 @@ namespace Serilog
             });
             return builder;
         }
-        
+
+        /// <summary>Sets Serilog as the logging provider.</summary>
+        /// <remarks>
+        /// A <see cref="WebHostBuilderContext"/> is supplied so that configuration and hosting information can be used.
+        /// The logger will be shut down when application services are disposed.
+        /// </remarks>
+        /// <param name="builder">The web host builder to configure.</param>
+        /// <param name="configureLogger">The delegate for configuring the <see cref="LoggerConfiguration" /> that will be used to construct a <see cref="Logger" />.</param>
+        /// <returns>The web host builder.</returns>
+        public static IWebHostBuilder UseSerilog(
+            this IWebHostBuilder builder,
+            Action<WebHostBuilderContext, LoggerConfiguration, IServiceProvider> configureLogger)
+        {
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+            if (configureLogger == null) throw new ArgumentNullException(nameof(configureLogger));
+
+            builder.ConfigureServices((webHostBuilderContext, services) =>
+            {
+                services.AddSingleton<ILoggerFactory>(serviceProvider =>
+                {
+                    var loggerConfiguration = new LoggerConfiguration();
+                    configureLogger(webHostBuilderContext, loggerConfiguration, serviceProvider);
+                    return new SerilogLoggerFactory(loggerConfiguration.CreateLogger());
+                });
+            });
+            return builder;
+        }
+
         static void ConfigureServices(IServiceCollection collection, ILogger logger)
         {
             if (collection == null) throw new ArgumentNullException(nameof(collection));
