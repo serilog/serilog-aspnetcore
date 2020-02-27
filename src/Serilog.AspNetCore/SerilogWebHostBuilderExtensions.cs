@@ -46,15 +46,15 @@ namespace Serilog
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
 
-            builder.ConfigureServices(collection =>
+            builder.ConfigureServices(services =>
             {
                 if (providers != null)
                 {
-                    collection.AddSingleton<ILoggerFactory>(services =>
+                    services.AddSingleton<ILoggerFactory>(serviceProvider =>
                     {
                         var factory = new SerilogLoggerFactory(logger, dispose, providers);
 
-                        foreach (var provider in services.GetServices<ILoggerProvider>())
+                        foreach (var provider in serviceProvider.GetServices<ILoggerProvider>())
                             factory.AddProvider(provider);
 
                         return factory;
@@ -62,10 +62,10 @@ namespace Serilog
                 }
                 else
                 {
-                    collection.AddSingleton<ILoggerFactory>(services => new SerilogLoggerFactory(logger, dispose));
+                    services.AddSingleton<ILoggerFactory>(serviceProvider => new SerilogLoggerFactory(logger, dispose));
                 }
 
-                ConfigureServices(collection, logger);
+                ConfigureServices(services, logger);
             });
 
             return builder;
@@ -92,7 +92,7 @@ namespace Serilog
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             if (configureLogger == null) throw new ArgumentNullException(nameof(configureLogger));
 
-            builder.ConfigureServices((context, collection) =>
+            builder.ConfigureServices((context, services) =>
             {
                 var loggerConfiguration = new LoggerConfiguration();
 
@@ -118,20 +118,20 @@ namespace Serilog
                     Log.Logger = logger;
                 }
 
-                collection.AddSingleton<ILoggerFactory>(services =>
+                services.AddSingleton<ILoggerFactory>(serviceProvider =>
                 {
                     var factory = new SerilogLoggerFactory(registeredLogger, true, loggerProviders);
 
                     if (writeToProviders)
                     {
-                        foreach (var provider in services.GetServices<ILoggerProvider>())
+                        foreach (var provider in serviceProvider.GetServices<ILoggerProvider>())
                             factory.AddProvider(provider);
                     }
 
                     return factory;
                 });
 
-                ConfigureServices(collection, logger);
+                ConfigureServices(services, logger);
             });
             return builder;
         }
@@ -163,24 +163,24 @@ namespace Serilog
             return builder;
         }
 
-        static void ConfigureServices(IServiceCollection collection, ILogger logger)
+        static void ConfigureServices(IServiceCollection services, ILogger logger)
         {
-            if (collection == null) throw new ArgumentNullException(nameof(collection));
+            if (services == null) throw new ArgumentNullException(nameof(services));
 
             if (logger != null)
             {
                 // This won't (and shouldn't) take ownership of the logger. 
-                collection.AddSingleton(logger);
+                services.AddSingleton(logger);
             }
 
             // Registered to provide two services...
             var diagnosticContext = new DiagnosticContext(logger);
 
             // Consumed by e.g. middleware
-            collection.AddSingleton(diagnosticContext);
+            services.AddSingleton(diagnosticContext);
 
             // Consumed by user code
-            collection.AddSingleton<IDiagnosticContext>(diagnosticContext);
+            services.AddSingleton<IDiagnosticContext>(diagnosticContext);
         }
     }
 }
