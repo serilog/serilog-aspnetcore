@@ -143,10 +143,14 @@ namespace Serilog
         /// </remarks>
         /// <param name="builder">The web host builder to configure.</param>
         /// <param name="configureLogger">The delegate for configuring the <see cref="LoggerConfiguration" /> that will be used to construct a <see cref="Logger" />.</param>
+        /// <param name="writeToProviders">By default, Serilog does not write events to <see cref="ILoggerProvider"/>s registered through
+        /// the Microsoft.Extensions.Logging API. Normally, equivalent Serilog sinks are used in place of providers. Specify
+        /// <c>true</c> to write events to all providers.</param>
         /// <returns>The web host builder.</returns>
         public static IWebHostBuilder UseSerilog(
             this IWebHostBuilder builder,
-            Action<WebHostBuilderContext, LoggerConfiguration, IServiceProvider> configureLogger)
+            Action<WebHostBuilderContext, LoggerConfiguration, IServiceProvider> configureLogger,
+            bool writeToProviders = false)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             if (configureLogger == null) throw new ArgumentNullException(nameof(configureLogger));
@@ -156,8 +160,27 @@ namespace Serilog
                 services.AddSingleton<ILoggerFactory>(serviceProvider =>
                 {
                     var loggerConfiguration = new LoggerConfiguration();
+
+                    LoggerProviderCollection loggerProviders = null;
+                    if (writeToProviders)
+                    {
+                        loggerProviders = new LoggerProviderCollection();
+                        loggerConfiguration.WriteTo.Providers(loggerProviders);
+                    }
+
                     configureLogger(webHostBuilderContext, loggerConfiguration, serviceProvider);
-                    return new SerilogLoggerFactory(loggerConfiguration.CreateLogger());
+                    
+                    var loggerFactory = new SerilogLoggerFactory(
+                        loggerConfiguration.CreateLogger(),
+                        providerCollection: loggerProviders);
+
+                    if (writeToProviders)
+                    {
+                        foreach (var provider in serviceProvider.GetServices<ILoggerProvider>())
+                            loggerFactory.AddProvider(provider);
+                    }
+
+                    return loggerFactory;
                 });
             });
             return builder;
