@@ -106,7 +106,13 @@ namespace Serilog.AspNetCore
 
         static string GetPath(HttpContext httpContext)
         {
-            return httpContext.Features.Get<IHttpRequestFeature>()?.RawTarget ?? httpContext.Request.Path.ToString();
+            var requestPath = httpContext.Features.Get<IHttpRequestFeature>()?.RawTarget;
+            if (string.IsNullOrWhiteSpace(requestPath))
+            {
+                requestPath = httpContext.Request.Path.ToString();
+            }
+            
+            return requestPath;
         }
     }
 }
