@@ -106,8 +106,13 @@ namespace Serilog.AspNetCore
 
         static string GetPath(HttpContext httpContext)
         {
+            /*
+                In some cases, like when running integration tests with WebApplicationFactory<T>
+                the RawTarget returns an empty string instead of null, in that case we can't use
+                ?? as fallback.
+            */
             var requestPath = httpContext.Features.Get<IHttpRequestFeature>()?.RawTarget;
-            if (string.IsNullOrWhiteSpace(requestPath))
+            if (string.IsNullOrEmpty(requestPath))
             {
                 requestPath = httpContext.Request.Path.ToString();
             }
