@@ -2,6 +2,6 @@
   "sdk": {
     "allowPrerelease": false,
     "version": "3.1.201",
-    "rollForward": "latestPatch"
+    "rollForward": "latestFeature"
   }
 }
