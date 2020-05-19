@@ -16,6 +16,8 @@ using Microsoft.AspNetCore.Http;
 using Serilog.Events;
 using System;
 
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+
 namespace Serilog.AspNetCore
 {
     /// <summary>
@@ -49,6 +51,13 @@ namespace Serilog.AspNetCore
         /// A callback that can be used to set additional properties on the request completion event.
         /// </summary>
         public Action<IDiagnosticContext, HttpContext> EnrichDiagnosticContext { get; set; }
+
+
+        /// <summary>
+        /// The logger through which request completion events will be logged. The default is to use the
+        /// static <see cref="Log"/> class.
+        /// </summary>
+        public ILogger Logger { get; set; }
 
         internal RequestLoggingOptions() { }
     }

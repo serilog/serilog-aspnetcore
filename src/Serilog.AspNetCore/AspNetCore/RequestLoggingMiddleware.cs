@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 
 namespace Serilog.AspNetCore
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     class RequestLoggingMiddleware
     {
         readonly RequestDelegate _next;
@@ -31,6 +32,7 @@ namespace Serilog.AspNetCore
         readonly MessageTemplate _messageTemplate;
         readonly Action<IDiagnosticContext, HttpContext> _enrichDiagnosticContext;
         readonly Func<HttpContext, double, Exception, LogEventLevel> _getLevel;
+        readonly ILogger _logger;
         static readonly LogEventProperty[] NoProperties = new LogEventProperty[0];
 
         public RequestLoggingMiddleware(RequestDelegate next, DiagnosticContext diagnosticContext, RequestLoggingOptions options)
@@ -42,6 +44,7 @@ namespace Serilog.AspNetCore
             _getLevel = options.GetLevel;
             _enrichDiagnosticContext = options.EnrichDiagnosticContext;
             _messageTemplate = new MessageTemplateParser().Parse(options.MessageTemplate);
+            _logger = options.Logger?.ForContext<RequestLoggingMiddleware>();
         }
 
         // ReSharper disable once UnusedMember.Global
@@ -73,7 +76,7 @@ namespace Serilog.AspNetCore
 
         bool LogCompletion(HttpContext httpContext, DiagnosticContextCollector collector, int statusCode, double elapsedMs, Exception ex)
         {
-            var logger = Log.ForContext<RequestLoggingMiddleware>();
+            var logger = _logger ?? Log.ForContext<RequestLoggingMiddleware>();
             var level = _getLevel(httpContext, elapsedMs, ex);
 
             if (!logger.IsEnabled(level)) return false;
