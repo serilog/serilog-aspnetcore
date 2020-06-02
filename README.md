@@ -51,11 +51,11 @@ public class Program
 ```csharp        
     public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .UseSerilog() // <-- Add this line
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                })
-                .UseSerilog(); // <-- Add this line;
+                });
 }
 ```
 
