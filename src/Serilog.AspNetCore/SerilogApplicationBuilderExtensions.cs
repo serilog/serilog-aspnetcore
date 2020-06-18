@@ -1,4 +1,4 @@
-﻿// Copyright 2019 Serilog Contributors
+﻿// Copyright 2019-2020 Serilog Contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,10 +13,12 @@
 // limitations under the License.
 
 using System;
+
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+
 using Serilog.AspNetCore;
-using Serilog.Events;
 
 namespace Serilog
 {
@@ -25,16 +27,6 @@ namespace Serilog
     /// </summary>
     public static class SerilogApplicationBuilderExtensions
     {
-        const string DefaultRequestCompletionMessageTemplate =
-            "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
-
-        static LogEventLevel DefaultGetLevel(HttpContext ctx, double _, Exception ex) =>
-            ex != null
-                ? LogEventLevel.Error 
-                : ctx.Response.StatusCode > 499 
-                    ? LogEventLevel.Error 
-                    : LogEventLevel.Information;
-
         /// <summary>
         /// Adds middleware for streamlined request logging. Instead of writing HTTP request information
         /// like method, path, timing, status code and exception details
@@ -70,12 +62,9 @@ namespace Serilog
             Action<RequestLoggingOptions> configureOptions = null)
         {
             if (app == null) throw new ArgumentNullException(nameof(app));
-            
-            var opts = new RequestLoggingOptions
-            {
-                GetLevel = DefaultGetLevel,
-                MessageTemplate = DefaultRequestCompletionMessageTemplate
-            };
+
+            var opts = app.ApplicationServices.GetService<IOptions<RequestLoggingOptions>>()?.Value ?? new RequestLoggingOptions();
+
             configureOptions?.Invoke(opts);
 
             if (opts.MessageTemplate == null)
