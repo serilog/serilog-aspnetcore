@@ -10,6 +10,7 @@ artifacts:
 - path: artifacts/Serilog.*.nupkg
 deploy:
 - provider: NuGet
+  skip_symbols: true
   api_key:
     secure: jZtLAmD4ALF9x1BZR1DiV3KhKlliWbzRUAw73xfMZaBsvz19123qLz2zw1+hPdcn
   on:
