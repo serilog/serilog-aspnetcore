@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 
 namespace Serilog.AspNetCore
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     class RequestLoggingMiddleware
     {
         readonly RequestDelegate _next;
@@ -31,6 +32,7 @@ namespace Serilog.AspNetCore
         readonly MessageTemplate _messageTemplate;
         readonly Action<IDiagnosticContext, HttpContext> _enrichDiagnosticContext;
         readonly Func<HttpContext, double, Exception, LogEventLevel> _getLevel;
+        readonly ILogger _logger;
         static readonly LogEventProperty[] NoProperties = new LogEventProperty[0];
 
         public RequestLoggingMiddleware(RequestDelegate next, DiagnosticContext diagnosticContext, RequestLoggingOptions options)
@@ -42,6 +44,7 @@ namespace Serilog.AspNetCore
             _getLevel = options.GetLevel;
             _enrichDiagnosticContext = options.EnrichDiagnosticContext;
             _messageTemplate = new MessageTemplateParser().Parse(options.MessageTemplate);
+            _logger = options.Logger?.ForContext<RequestLoggingMiddleware>();
         }
 
         // ReSharper disable once UnusedMember.Global
@@ -73,7 +76,7 @@ namespace Serilog.AspNetCore
 
         bool LogCompletion(HttpContext httpContext, DiagnosticContextCollector collector, int statusCode, double elapsedMs, Exception ex)
         {
-            var logger = Log.ForContext<RequestLoggingMiddleware>();
+            var logger = _logger ?? Log.ForContext<RequestLoggingMiddleware>();
             var level = _getLevel(httpContext, elapsedMs, ex);
 
             if (!logger.IsEnabled(level)) return false;
@@ -106,7 +109,18 @@ namespace Serilog.AspNetCore
 
         static string GetPath(HttpContext httpContext)
         {
-            return httpContext.Features.Get<IHttpRequestFeature>()?.RawTarget ?? httpContext.Request.Path.ToString();
+            /*
+                In some cases, like when running integration tests with WebApplicationFactory<T>
+                the RawTarget returns an empty string instead of null, in that case we can't use
+                ?? as fallback.
+            */
+            var requestPath = httpContext.Features.Get<IHttpRequestFeature>()?.RawTarget;
+            if (string.IsNullOrEmpty(requestPath))
+            {
+                requestPath = httpContext.Request.Path.ToString();
+            }
+            
+            return requestPath;
         }
     }
 }

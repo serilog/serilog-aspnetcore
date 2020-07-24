@@ -1,10 +1,9 @@
-using System.Net;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using Serilog.Events;
+using Serilog.AspNetCore;
 
 namespace InlineInitializationSample
 {
@@ -12,6 +11,14 @@ namespace InlineInitializationSample
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<RequestLoggingOptions>(o =>
+            {
+                o.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+                {
+                    diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress.MapToIPv4());
+                };
+            });
+
             services.AddControllersWithViews();
         }
 

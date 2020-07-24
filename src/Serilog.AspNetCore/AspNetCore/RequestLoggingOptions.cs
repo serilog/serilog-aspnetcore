@@ -1,4 +1,4 @@
-﻿// Copyright 2019 Serilog Contributors
+﻿// Copyright 2019-2020 Serilog Contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,13 +16,25 @@ using Microsoft.AspNetCore.Http;
 using Serilog.Events;
 using System;
 
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+
 namespace Serilog.AspNetCore
 {
     /// <summary>
-    /// Contains options for the <see cref="Serilog.AspNetCore.RequestLoggingMiddleware"/>.
+    /// Contains options for the <see cref="RequestLoggingMiddleware"/>.
     /// </summary>
     public class RequestLoggingOptions
     {
+        const string DefaultRequestCompletionMessageTemplate =
+            "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+
+        static LogEventLevel DefaultGetLevel(HttpContext ctx, double _, Exception ex) =>
+            ex != null
+                ? LogEventLevel.Error
+                : ctx.Response.StatusCode > 499
+                    ? LogEventLevel.Error
+                    : LogEventLevel.Information;
+
         /// <summary>
         /// Gets or sets the message template. The default value is
         /// <c>"HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms"</c>. The
@@ -50,6 +62,19 @@ namespace Serilog.AspNetCore
         /// </summary>
         public Action<IDiagnosticContext, HttpContext> EnrichDiagnosticContext { get; set; }
 
-        internal RequestLoggingOptions() { }
+        /// <summary>
+        /// The logger through which request completion events will be logged. The default is to use the
+        /// static <see cref="Log"/> class.
+        /// </summary>
+        public ILogger Logger { get; set; }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public RequestLoggingOptions()
+        {
+            GetLevel = DefaultGetLevel;
+            MessageTemplate = DefaultRequestCompletionMessageTemplate;
+        }
     }
 }
