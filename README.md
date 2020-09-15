@@ -146,7 +146,8 @@ During request processing, additional properties can be attached to the completi
 
         public HomeController(IDiagnosticContext diagnosticContext)
         {
-            _diagnosticContext = diagnosticContext ?? throw new ArgumentNullException(nameof(diagnosticContext));
+            _diagnosticContext = diagnosticContext ??
+                throw new ArgumentNullException(nameof(diagnosticContext));
         }
 
         public IActionResult Index()
