@@ -293,7 +293,7 @@ using (logger.BeginScope(new Dictionary<string, object>
 }
 ```
 
-The code above results in the same outcome as if you would push propeties in the **ILogger** in Serilog.
+The code above results in the same outcome as if you would push properties in the **ILogger** in Serilog.
 
 ```csharp
 // Serilog ILogger
