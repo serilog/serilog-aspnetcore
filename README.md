@@ -285,11 +285,11 @@ If you want to add extra properties to all logevents in a specific part of your 
 // Yes, it's required to use a dictionary. See https://nblumhardt.com/2016/11/ilogger-beginscope/
 using (logger.BeginScope(new Dictionary<string, object>
 {
-    ["UserId"] = "xxx",
-    ["ExtraProperty"] = "yyy",
+    ["UserId"] = "svrooij",
+    ["OperationType"] = "update",
 }))
 {
-   // UserId and ExtraProperty are set for all logging events in these brackets
+   // UserId and OperationType are set for all logging events in these brackets
 }
 ```
 
@@ -297,9 +297,9 @@ The code above results in the same outcome as if you would push properties in th
 
 ```csharp
 // Serilog ILogger
-using (logger.PushProperty("UserId", "xxx"))
-using (logger.PushProperty("ExtraProperty", "yyy"))
+using (logger.PushProperty("UserId", "svrooij"))
+using (logger.PushProperty("OperationType", "update"))
 {
-    // UserId and ExtraProperty are set for all logging events in these brackets
+    // UserId and OperationType are set for all logging events in these brackets
 }
 ```
