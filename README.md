@@ -276,12 +276,12 @@ The Azure Diagnostic Log Stream ships events from any files in the `D:\home\LogF
             .CreateLogger();
 ```
 
-### Pushing properties to the ILogger
+### Pushing properties to the `ILogger<T>`
 
-If you want to add extra properties to all logevents in a specific part of your code, you can add them to the **ILogger** in **Microsoft.Extensions.Logging** with the following code. For this code to work, make sure you have added the `.Enrich.FromLogContext()` to the `.UseSerilog(...)` statement, as specified in the samples above.
+If you want to add extra properties to all logevents in a specific part of your code, you can add them to the **`ILogger<T>`** in **Microsoft.Extensions.Logging** with the following code. For this code to work, make sure you have added the `.Enrich.FromLogContext()` to the `.UseSerilog(...)` statement, as specified in the samples above.
 
 ```csharp
-// Microsoft.Extensions.Logging ILogger
+// Microsoft.Extensions.Logging ILogger<T>
 // Yes, it's required to use a dictionary. See https://nblumhardt.com/2016/11/ilogger-beginscope/
 using (logger.BeginScope(new Dictionary<string, object>
 {
