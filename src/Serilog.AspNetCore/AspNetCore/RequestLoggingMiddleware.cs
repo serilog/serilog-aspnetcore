@@ -107,7 +107,7 @@ namespace Serilog.AspNetCore
 
         static double GetElapsedMilliseconds(long start, long stop)
         {
-            return (stop - start) * 1000 / (double) Stopwatch.Frequency;
+            return (stop - start) * 1000 / (double)Stopwatch.Frequency;
         }
 
         static string GetPath(HttpContext httpContext)
