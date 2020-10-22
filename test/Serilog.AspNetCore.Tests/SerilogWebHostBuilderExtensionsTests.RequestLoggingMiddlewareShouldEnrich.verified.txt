@@ -1,0 +1,20 @@
+{
+  SomeString: {
+    Value: 'string'
+  },
+  SomeInteger: {
+    Value: 42
+  },
+  RequestMethod: {
+    Value: 'GET'
+  },
+  RequestPath: {
+    Value: '/resource'
+  },
+  StatusCode: {
+    Value: 200
+  },
+  SourceContext: {
+    Value: 'Serilog.AspNetCore.RequestLoggingMiddleware'
+  }
+}

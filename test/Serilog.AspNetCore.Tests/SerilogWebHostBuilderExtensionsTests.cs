@@ -14,12 +14,28 @@ using Microsoft.AspNetCore.Builder;
 
 using Serilog.Filters;
 using Serilog.AspNetCore.Tests.Support;
+using VerifyTests;
+using VerifyXunit;
 
 namespace Serilog.AspNetCore.Tests
 {
+    [UsesVerify]
     public class SerilogWebHostBuilderExtensionsTests : IClassFixture<SerilogWebApplicationFactory>
     {
         SerilogWebApplicationFactory _web;
+
+        static SerilogWebHostBuilderExtensionsTests()
+        {
+            VerifierSettings.ModifySerialization(settings =>
+            {
+                settings.IgnoreMember("TraceId");
+                settings.IgnoreMember("Elapsed");
+                settings.IgnoreMember("RequestId");
+                settings.IgnoreMember("SpanId");
+                settings.IgnoreMember("CorrelationId");
+                settings.IgnoreMember("ParentId");
+            });
+        }
 
         public SerilogWebHostBuilderExtensionsTests(SerilogWebApplicationFactory web)
         {
@@ -57,12 +73,7 @@ namespace Serilog.AspNetCore.Tests
 
             var completionEvent = sink.Writes.Where(logEvent => Matching.FromSource<RequestLoggingMiddleware>()(logEvent)).FirstOrDefault();
 
-            Assert.Equal(42, completionEvent.Properties["SomeInteger"].LiteralValue());
-            Assert.Equal("string", completionEvent.Properties["SomeString"].LiteralValue());
-            Assert.Equal("/resource", completionEvent.Properties["RequestPath"].LiteralValue());
-            Assert.Equal(200, completionEvent.Properties["StatusCode"].LiteralValue());
-            Assert.Equal("GET", completionEvent.Properties["RequestMethod"].LiteralValue());
-            Assert.True(completionEvent.Properties.ContainsKey("Elapsed"));
+            await Verifier.Verify(completionEvent.Properties);
         }
 
         WebApplicationFactory<TestStartup> Setup(ILogger logger, bool dispose, Action<RequestLoggingOptions> configureOptions = null)
