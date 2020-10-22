@@ -39,8 +39,8 @@ namespace Serilog
         /// default, only Serilog sinks will receive events.</param>
         /// <returns>The web host builder.</returns>
         public static IWebHostBuilder UseSerilog(
-            this IWebHostBuilder builder, 
-            ILogger logger = null, 
+            this IWebHostBuilder builder,
+            ILogger logger = null,
             bool dispose = false,
             LoggerProviderCollection providers = null)
         {
@@ -105,7 +105,7 @@ namespace Serilog
 
                 configureLogger(context, loggerConfiguration);
                 var logger = loggerConfiguration.CreateLogger();
-                
+
                 ILogger registeredLogger = null;
                 if (preserveStaticLogger)
                 {
@@ -135,14 +135,14 @@ namespace Serilog
             });
             return builder;
         }
-        
+
         static void ConfigureServices(IServiceCollection collection, ILogger logger)
         {
             if (collection == null) throw new ArgumentNullException(nameof(collection));
 
             if (logger != null)
             {
-                // This won't (and shouldn't) take ownership of the logger. 
+                // This won't (and shouldn't) take ownership of the logger.
                 collection.AddSingleton(logger);
             }
 

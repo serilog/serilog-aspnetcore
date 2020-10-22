@@ -51,18 +51,23 @@ namespace Serilog.AspNetCore.Tests
                 };
             });
 
-            await web.CreateClient().GetAsync("/resource");
+            var client = web.CreateClient();
+            client.DefaultRequestHeaders.Add("cache-control","no-cache");
+            await client.GetAsync("/resource");
 
             Assert.NotEmpty(sink.Writes);
 
-            var completionEvent = sink.Writes.Where(logEvent => Matching.FromSource<RequestLoggingMiddleware>()(logEvent)).FirstOrDefault();
+            var completionEvent = sink.Writes.FirstOrDefault(logEvent => Matching.FromSource<RequestLoggingMiddleware>()(logEvent));
 
-            Assert.Equal(42, completionEvent.Properties["SomeInteger"].LiteralValue());
-            Assert.Equal("string", completionEvent.Properties["SomeString"].LiteralValue());
-            Assert.Equal("/resource", completionEvent.Properties["RequestPath"].LiteralValue());
-            Assert.Equal(200, completionEvent.Properties["StatusCode"].LiteralValue());
-            Assert.Equal("GET", completionEvent.Properties["RequestMethod"].LiteralValue());
-            Assert.True(completionEvent.Properties.ContainsKey("Elapsed"));
+            var properties = completionEvent.Properties;
+            Assert.Equal(42, properties["SomeInteger"].LiteralValue());
+            Assert.Equal("string", properties["SomeString"].LiteralValue());
+            Assert.Equal("/resource", properties["RequestPath"].LiteralValue());
+            Assert.Equal(200, properties["StatusCode"].LiteralValue());
+            Assert.Equal("GET", properties["RequestMethod"].LiteralValue());
+            Assert.True(properties.ContainsKey("Elapsed"));
+            var logEventPropertyValue = properties["Headers"].DictionaryValue().First().Value.LiteralValue();
+            Assert.Equal("no-cache", logEventPropertyValue.ToString());
         }
 
         WebApplicationFactory<TestStartup> Setup(ILogger logger, bool dispose, Action<RequestLoggingOptions> configureOptions = null)

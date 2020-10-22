@@ -18,6 +18,7 @@ using Serilog.Events;
 using Serilog.Extensions.Hosting;
 using Serilog.Parsing;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -88,13 +89,15 @@ namespace Serilog.AspNetCore
                 collectedProperties = NoProperties;
 
             // Last-in (correctly) wins...
-            var properties = collectedProperties.Concat(new[]
-            {
-                new LogEventProperty("RequestMethod", new ScalarValue(httpContext.Request.Method)),
-                new LogEventProperty("RequestPath", new ScalarValue(GetPath(httpContext))),
-                new LogEventProperty("StatusCode", new ScalarValue(statusCode)),
-                new LogEventProperty("Elapsed", new ScalarValue(elapsedMs))
-            });
+            var properties = collectedProperties
+                .Concat(new[]
+                {
+                    new LogEventProperty("RequestMethod", new ScalarValue(httpContext.Request.Method)),
+                    new LogEventProperty("RequestPath", new ScalarValue(GetPath(httpContext))),
+                    new LogEventProperty("StatusCode", new ScalarValue(statusCode)),
+                    new LogEventProperty("Elapsed", new ScalarValue(elapsedMs)),
+                    GetRequestHeaders(httpContext)
+                });
 
             var evt = new LogEvent(DateTimeOffset.Now, level, ex, _messageTemplate, properties);
             logger.Write(evt);
@@ -104,7 +107,7 @@ namespace Serilog.AspNetCore
 
         static double GetElapsedMilliseconds(long start, long stop)
         {
-            return (stop - start) * 1000 / (double)Stopwatch.Frequency;
+            return (stop - start) * 1000 / (double) Stopwatch.Frequency;
         }
 
         static string GetPath(HttpContext httpContext)
@@ -119,8 +122,31 @@ namespace Serilog.AspNetCore
             {
                 requestPath = httpContext.Request.Path.ToString();
             }
-            
+
             return requestPath;
+        }
+
+        static List<string> allowedHeaders = new List<string>
+        {
+            "accept",
+            "accept-encoding",
+            "accept-language",
+            "cache-control",
+            "content-length",
+            "content-type",
+            "referer",
+            "user-agent"
+        };
+
+        static LogEventProperty GetRequestHeaders(HttpContext httpContext)
+        {
+            var values = httpContext.Request.Headers
+                .Where(x => allowedHeaders.Contains(x.Key.ToLowerInvariant()))
+                .Select(x =>
+                    new KeyValuePair<ScalarValue, LogEventPropertyValue>(
+                        new ScalarValue(x.Key),
+                        new ScalarValue(x.Value.ToString())));
+            return new LogEventProperty("Headers", new DictionaryValue(values));
         }
     }
 }
