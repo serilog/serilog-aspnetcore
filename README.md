@@ -60,7 +60,7 @@ public class Program
 
 **Finally**, clean up by removing the remaining configuration for the default logger:
 
- * Remove the `"Logging"` section from _appsettings.json_ files (this can be replaced with [Serilog configuration](https://github.com/serilog/serilog-settings-configuration) as shown in [the _EarlyInitializationSample_ project](https://github.com/serilog/serilog-aspnetcore/blob/dev/samples/EarlyInitializationSample/Program.cs), if required)
+ * Remove the `"Logging"` section from _appsettings.*.json_ files (this can be replaced with [Serilog configuration](https://github.com/serilog/serilog-settings-configuration) as shown in [the _Sample_ project](https://github.com/serilog/serilog-aspnetcore/blob/dev/samples/Sample/Program.cs), if required)
  * Remove `UseApplicationInsights()` (this can be replaced with the [Serilog AI sink](https://github.com/serilog/serilog-sinks-applicationinsights), if required)
 
 That's it! With the level bumped up a little you will see log output resembling:
@@ -231,11 +231,11 @@ It's important to note that the final logger **completely replaces** the bootstr
 
 #### Consuming `appsettings.json` configuration
 
-**Using two-stage initialization**, insert the `ReadFrom.Configuration(context.Configuration)` call shown in the example above. The JSON configuration syntax is documented in [the _Serilog.Settings.Configuration_ README](https://github.com/serilog/serilog-settings-configuration)/
+**Using two-stage initialization**, insert the `ReadFrom.Configuration(context.Configuration)` call shown in the example above. The JSON configuration syntax is documented in [the _Serilog.Settings.Configuration_ README](https://github.com/serilog/serilog-settings-configuration).
 
 #### Injecting services into enrichers and sinks
 
-**Using two-stage initialization**, insert the `ReadFrom.Services(services)` call shown in the example above. The `ReadFrom.Services()` call will configure the logging pipeline with any registred implementations of the following services:
+**Using two-stage initialization**, insert the `ReadFrom.Services(services)` call shown in the example above. The `ReadFrom.Services()` call will configure the logging pipeline with any registered implementations of the following services:
 
  * `IDestructuringPolicy`
  * `ILogEventEnricher`
