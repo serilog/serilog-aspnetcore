@@ -11,8 +11,7 @@
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
     <PackageTags>serilog;aspnet;aspnetcore</PackageTags>
-    <PackageIcon>serilog-extension-nuget.png</PackageIcon>
-    <PackageIconUrl>https://serilog.net/images/serilog-extension-nuget.png</PackageIconUrl>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/serilog/serilog-aspnetcore</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/serilog/serilog-aspnetcore</RepositoryUrl>
@@ -22,9 +21,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="images/serilog-extension-nuget.png" Pack="true" PackagePath="/" />
+    <None Include="..\..\assets\icon.png" Pack="true" Visible="false" PackagePath="" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.10.0" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="4.0.0" />
