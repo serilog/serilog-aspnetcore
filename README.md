@@ -208,7 +208,7 @@ public class Program
             .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
             .Enrich.FromLogContext()
             .WriteTo.Console()
-            .CreateBootstrapLogger(); <-- this line!
+            .CreateBootstrapLogger(); // <-- Change this line!
 ```
 
 Then, pass a callback to `UseSerilog()` that creates the final logger:
