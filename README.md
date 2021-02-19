@@ -1,8 +1,10 @@
-# Serilog.AspNetCore [![Build status](https://ci.appveyor.com/api/projects/status/4rscdto23ik6vm2r/branch/dev?svg=true)](https://ci.appveyor.com/project/serilog/serilog-aspnetcore/branch/dev) [![NuGet Version](http://img.shields.io/nuget/v/Serilog.AspNetCore.svg?style=flat)](https://www.nuget.org/packages/Serilog.AspNetCore/) [![NuGet Prerelease Version](http://img.shields.io/nuget/vpre/Serilog.AspNetCore.svg?style=flat)](https://www.nuget.org/packages/Serilog.AspNetCore/) 
+# Serilog.AspNetCore [![Build status](https://ci.appveyor.com/api/projects/status/4rscdto23ik6vm2r/branch/dev?svg=true)](https://ci.appveyor.com/project/serilog/serilog-aspnetcore/branch/dev) [![NuGet Version](http://img.shields.io/nuget/v/Serilog.AspNetCore.svg?style=flat)](https://www.nuget.org/packages/Serilog.AspNetCore/) [![NuGet Prerelease Version](http://img.shields.io/nuget/vpre/Serilog.AspNetCore.svg?style=flat)](https://www.nuget.org/packages/Serilog.AspNetCore/)
 
 Serilog logging for ASP.NET Core. This package routes ASP.NET Core log messages through Serilog, so you can get information about ASP.NET's internal operations written to the same Serilog sinks as your application events.
 
 With _Serilog.AspNetCore_ installed and configured, you can write log messages directly through Serilog or any `ILogger` interface injected by ASP.NET. All loggers will use the same underlying implementation, levels, and destinations.
+
+**.NET Framework** and .NET Core 2.x are supported by version 3.4.0 of this package. Recent versions of _Serilog.AspNetCore_ require .NET Core 3.x, .NET 5, or later.
 
 ### Instructions
 
