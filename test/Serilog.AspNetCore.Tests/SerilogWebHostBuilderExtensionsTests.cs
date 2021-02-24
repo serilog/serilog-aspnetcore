@@ -4,14 +4,11 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-
 using Xunit;
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Builder;
-
 using Serilog.Filters;
 using Serilog.AspNetCore.Tests.Support;
 
