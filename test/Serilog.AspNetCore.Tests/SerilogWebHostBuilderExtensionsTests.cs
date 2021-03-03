@@ -4,14 +4,11 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-
 using Xunit;
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Builder;
-
 using Serilog.Filters;
 using Serilog.AspNetCore.Tests.Support;
 
@@ -19,7 +16,7 @@ namespace Serilog.AspNetCore.Tests
 {
     public class SerilogWebHostBuilderExtensionsTests : IClassFixture<SerilogWebApplicationFactory>
     {
-        SerilogWebApplicationFactory _web;
+        readonly SerilogWebApplicationFactory _web;
 
         public SerilogWebHostBuilderExtensionsTests(SerilogWebApplicationFactory web)
         {
@@ -55,7 +52,7 @@ namespace Serilog.AspNetCore.Tests
 
             Assert.NotEmpty(sink.Writes);
 
-            var completionEvent = sink.Writes.Where(logEvent => Matching.FromSource<RequestLoggingMiddleware>()(logEvent)).FirstOrDefault();
+            var completionEvent = sink.Writes.First(logEvent => Matching.FromSource<RequestLoggingMiddleware>()(logEvent));
 
             Assert.Equal(42, completionEvent.Properties["SomeInteger"].LiteralValue());
             Assert.Equal("string", completionEvent.Properties["SomeString"].LiteralValue());
