@@ -18,6 +18,7 @@ dotnet add package Serilog.AspNetCore
 
 ```csharp
 using Serilog;
+using Serilog.Events;
 
 public class Program
 {
