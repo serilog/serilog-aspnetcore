@@ -201,6 +201,7 @@ To use this technique, first replace the initial `CreateLogger()` call with `Cre
 
 ```csharp
 using Serilog;
+using Serilog.Events;
 
 public class Program
 {
