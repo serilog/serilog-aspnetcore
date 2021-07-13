@@ -46,6 +46,7 @@ public class Program
             Log.CloseAndFlush();
         }
     }
+}
 ```
 
 **Then**, add `UseSerilog()` to the Generic Host in `CreateHostBuilder()`.
