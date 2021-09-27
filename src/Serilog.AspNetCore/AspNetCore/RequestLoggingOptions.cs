@@ -69,6 +69,11 @@ namespace Serilog.AspNetCore
         public ILogger Logger { get; set; }
 
         /// <summary>
+        /// 
+        /// </summary>
+        public bool IncludeRawTargetPath { get; set; } = true;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         public RequestLoggingOptions()
