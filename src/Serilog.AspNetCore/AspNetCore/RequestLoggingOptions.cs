@@ -71,7 +71,7 @@ namespace Serilog.AspNetCore
         /// <summary>
         /// Include raw request path in "RequestPath" or not. The default is
         /// true for backward compatibility. Raw request path contains url query
-        /// patameters and values.
+        /// parameters and values.
         /// </summary>
         public bool IncludeRawTargetPath { get; set; } = true;
 
