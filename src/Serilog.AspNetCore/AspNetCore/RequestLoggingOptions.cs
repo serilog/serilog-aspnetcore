@@ -69,7 +69,9 @@ namespace Serilog.AspNetCore
         public ILogger Logger { get; set; }
 
         /// <summary>
-        /// 
+        /// Include raw request path in "RequestPath" or not. The default is
+        /// true for backward compatibility. Raw request path contains url query
+        /// patameters and values.
         /// </summary>
         public bool IncludeRawTargetPath { get; set; } = true;
 
