@@ -33,7 +33,7 @@ namespace Serilog.AspNetCore
         readonly Action<IDiagnosticContext, HttpContext> _enrichDiagnosticContext;
         readonly Func<HttpContext, double, Exception, LogEventLevel> _getLevel;
         readonly ILogger _logger;
-        readonly bool _includeRawTargetPath;
+        readonly bool _includeQueryInPath;
         static readonly LogEventProperty[] NoProperties = new LogEventProperty[0];
 
         public RequestLoggingMiddleware(RequestDelegate next, DiagnosticContext diagnosticContext, RequestLoggingOptions options)
@@ -46,7 +46,7 @@ namespace Serilog.AspNetCore
             _enrichDiagnosticContext = options.EnrichDiagnosticContext;
             _messageTemplate = new MessageTemplateParser().Parse(options.MessageTemplate);
             _logger = options.Logger?.ForContext<RequestLoggingMiddleware>();
-            _includeRawTargetPath = options.IncludeRawTargetPath;
+            _includeQueryInPath = options.IncludeQueryInPath;
         }
 
         // ReSharper disable once UnusedMember.Global
@@ -93,7 +93,7 @@ namespace Serilog.AspNetCore
             var properties = collectedProperties.Concat(new[]
             {
                 new LogEventProperty("RequestMethod", new ScalarValue(httpContext.Request.Method)),
-                new LogEventProperty("RequestPath", new ScalarValue(GetPath(httpContext, _includeRawTargetPath))),
+                new LogEventProperty("RequestPath", new ScalarValue(GetPath(httpContext, _includeQueryInPath))),
                 new LogEventProperty("StatusCode", new ScalarValue(statusCode)),
                 new LogEventProperty("Elapsed", new ScalarValue(elapsedMs))
             });
@@ -109,14 +109,14 @@ namespace Serilog.AspNetCore
             return (stop - start) * 1000 / (double)Stopwatch.Frequency;
         }
 
-        static string GetPath(HttpContext httpContext, bool includeRawTargetPath)
+        static string GetPath(HttpContext httpContext, bool includeQueryInPath)
         {
             /*
                 In some cases, like when running integration tests with WebApplicationFactory<T>
                 the Path returns an empty string instead of null, in that case we can't use
                 ?? as fallback.
             */
-            var requestPath = includeRawTargetPath
+            var requestPath = includeQueryInPath
                 ? httpContext.Features.Get<IHttpRequestFeature>()?.RawTarget
                 : httpContext.Features.Get<IHttpRequestFeature>()?.Path;
             if (string.IsNullOrEmpty(requestPath))
