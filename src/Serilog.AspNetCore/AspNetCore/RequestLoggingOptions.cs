@@ -73,7 +73,7 @@ namespace Serilog.AspNetCore
         /// true for backward compatibility. This includes both query
         /// parameters and values.
         /// </summary>
-        public bool IncludeQueryInPath { get; set; } = true;
+        public bool IncludeQueryInRequestPath { get; set; } = true;
 
         /// <summary>
         /// Constructor
