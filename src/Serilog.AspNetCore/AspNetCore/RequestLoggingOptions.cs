@@ -69,6 +69,12 @@ namespace Serilog.AspNetCore
         public ILogger Logger { get; set; }
 
         /// <summary>
+        /// Include the full URL query string in the <c>RequestPath</c> property
+        /// that is attached to request log events. The default is <c>true</c>.
+        /// </summary>
+        public bool IncludeQueryInRequestPath { get; set; } = true;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         public RequestLoggingOptions()
