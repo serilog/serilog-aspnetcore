@@ -20,7 +20,8 @@ dotnet add package Serilog.AspNetCore
 
 #### ASP.Net 6.0
 
-ASP.Net 6 combines the `Startup` and `Program.main`, add Serilog like this:
+ASP.Net 6 combines the `Startup` and `Program.main`.
+Setup Serilog like this:
 
 
 ```csharp
@@ -83,6 +84,8 @@ finally
 
 #### ASP.Net 5.0
 
+
+For ASP.Net <=5.0 setup Serilog like this:
 
 ```csharp
 using Serilog;
