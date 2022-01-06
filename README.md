@@ -6,7 +6,7 @@ With _Serilog.AspNetCore_ installed and configured, you can write log messages d
 
 **.NET Framework** and .NET Core 2.x are supported by version 3.4.0 of this package. Recent versions of _Serilog.AspNetCore_ require .NET Core 3.x, .NET 5, or later.
 
-### Instructions
+## Instructions
 
 **First**, install the _Serilog.AspNetCore_ [NuGet package](https://www.nuget.org/packages/Serilog.AspNetCore) into your app.
 
@@ -16,13 +16,9 @@ dotnet add package Serilog.AspNetCore
 
 **Next**, in your application's _Program.cs_ file, configure Serilog first.  A `try`/`catch` block will ensure any configuration issues are appropriately logged:
 
+_ASP.Net 6 combines the `Startup` and `Program.main`._
 
-
-#### ASP.Net 6.0
-
-ASP.Net 6 combines the `Startup` and `Program.main`.
-Setup Serilog like this:
-
+Update your `Program.cs` file like this
 
 ```csharp
 using Serilog;
@@ -50,7 +46,7 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    app.UseHsts(); // <== You may want to comment this out until you have set up cert rotation correctly
 }
 
 app.UseHttpsRedirection();
@@ -82,64 +78,14 @@ finally
 }
 ```
 
-#### ASP.Net 5.0
-
-
-For ASP.Net <=5.0 setup Serilog like this:
-
-```csharp
-using Serilog;
-using Serilog.Events;
-
-public class Program
-{
-    public static int Main(string[] args)
-    {
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-            .Enrich.FromLogContext()
-            .WriteTo.Console()
-            .CreateLogger();
-
-        try
-        {
-            Log.Information("Starting web host");
-            CreateHostBuilder(args).Build().Run();
-            return 0;
-        }
-        catch (Exception ex)
-        {
-            Log.Fatal(ex, "Host terminated unexpectedly");
-            return 1;
-        }
-        finally
-        {
-            Log.CloseAndFlush();
-        }
-    }
-```
-
-**Then**, add `UseSerilog()` to the Generic Host in `CreateHostBuilder()`.
-
-```csharp        
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .UseSerilog() // <-- Add this line
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
-}
-```
-
 **Finally**, clean up by removing the remaining configuration for the default logger:
 
- * Remove the `"Logging"` section from _appsettings.*.json_ files (this can be replaced with [Serilog configuration](https://github.com/serilog/serilog-settings-configuration) as shown in [the _Sample_ project](https://github.com/serilog/serilog-aspnetcore/blob/dev/samples/Sample/Program.cs), if required)
- * Remove `UseApplicationInsights()` (this can be replaced with the [Serilog AI sink](https://github.com/serilog/serilog-sinks-applicationinsights), if required)
+1. Remove the `"Logging"` section from _appsettings.*.json_ files (this can be replaced with [Serilog configuration](https://github.com/serilog/serilog-settings-configuration) as shown in [the _Sample_ project](https://github.com/serilog/serilog-aspnetcore/blob/dev/samples/Sample/Program.cs), if required)
+2. Remove `UseApplicationInsights()` (this can be replaced with the [Serilog AI sink](https://github.com/serilog/serilog-sinks-applicationinsights), if required)
 
 That's it! With the level bumped up a little you will see log output resembling:
 
-```
+``` bash
 [22:14:44.646 DBG] RouteCollection.RouteAsync
     Routes: 
         Microsoft.AspNet.Mvc.Routing.AttributeRoute
@@ -162,7 +108,7 @@ The package includes middleware for smarter HTTP request logging. The default re
 
 As text, this has a format like:
 
-```
+``` bash
 [16:05:54 INF] HTTP GET / responded 200 in 227.3253 ms
 ```
 
@@ -312,11 +258,11 @@ It's important to note that the final logger **completely replaces** the bootstr
 
 **Using two-stage initialization**, insert the `ReadFrom.Services(services)` call shown in the example above. The `ReadFrom.Services()` call will configure the logging pipeline with any registered implementations of the following services:
 
- * `IDestructuringPolicy`
- * `ILogEventEnricher`
- * `ILogEventFilter`
- * `ILogEventSink`
- * `LoggingLevelSwitch`
+* `IDestructuringPolicy`
+* `ILogEventEnricher`
+* `ILogEventFilter`
+* `ILogEventSink`
+* `LoggingLevelSwitch`
 
 #### Enabling `Microsoft.Extensions.Logging.ILoggerProvider`s
 
