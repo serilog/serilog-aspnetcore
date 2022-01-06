@@ -60,7 +60,7 @@ app.MapRazorPages();
 
 
 
-// 3. Wrap app.run() in a try catch block
+// 3. Wrap app.Run() in a try catch block
 try
 {
     Log.Information("Starting web host");
