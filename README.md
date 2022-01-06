@@ -33,7 +33,7 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateLogger();
 
-builder.WebHost.UseSerilog(); // <== 2. Add this line
+builder.Host.UseSerilog(); // <== 2. Add this line
 
 
 // Add services to the container.
