@@ -16,7 +16,7 @@ dotnet add package Serilog.AspNetCore
 
 **Next**, in your application's _Program.cs_ file, configure Serilog first.  A `try`/`catch` block will ensure any configuration issues are appropriately logged:
 
-_ASP.Net 6 combines the `Startup` and `Program.main`._
+_ASP.Net 6 combines the `Startup` and `Program.Main`._
 
 Update your `Program.cs` file like this
 
