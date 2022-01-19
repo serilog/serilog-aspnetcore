@@ -16,15 +16,11 @@ dotnet add package Serilog.AspNetCore
 
 **Next**, in your application's _Program.cs_ file, configure Serilog first.  A `try`/`catch` block will ensure any configuration issues are appropriately logged:
 
-_ASP.Net 6 combines the `Startup` and `Program.Main`._
-
-Update your `Program.cs` file like this
 
 ```csharp
 using Serilog;
 using Serilog.Events;
 
-var builder = WebApplication.CreateBuilder(args);
 
 //1. Add logger setup
 Log.Logger = new LoggerConfiguration()
@@ -33,7 +29,13 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateLogger();
 
-builder.Host.UseSerilog(); // <== 2. Add this line
+// 2. Wrap in a try catch block
+try
+{
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog(); // <== 3. Add this line
 
 
 // Add services to the container.
@@ -60,9 +62,7 @@ app.MapRazorPages();
 
 
 
-// 3. Wrap app.Run() in a try catch block
-try
-{
+
     Log.Information("Starting web host");
     app.Run();
     return 0;
@@ -85,7 +85,7 @@ finally
 
 That's it! With the level bumped up a little you will see log output resembling:
 
-``` bash
+``` 
 [22:14:44.646 DBG] RouteCollection.RouteAsync
     Routes: 
         Microsoft.AspNet.Mvc.Routing.AttributeRoute
@@ -108,7 +108,7 @@ The package includes middleware for smarter HTTP request logging. The default re
 
 As text, this has a format like:
 
-``` bash
+``` 
 [16:05:54 INF] HTTP GET / responded 200 in 227.3253 ms
 ```
 
