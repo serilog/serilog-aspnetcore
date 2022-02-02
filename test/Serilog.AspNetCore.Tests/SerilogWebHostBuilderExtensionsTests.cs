@@ -12,6 +12,9 @@ using Microsoft.AspNetCore.Builder;
 using Serilog.Filters;
 using Serilog.AspNetCore.Tests.Support;
 
+// Newer frameworks provide IHostBuilder
+#pragma warning disable CS0618
+
 namespace Serilog.AspNetCore.Tests
 {
     public class SerilogWebHostBuilderExtensionsTests : IClassFixture<SerilogWebApplicationFactory>
