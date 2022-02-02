@@ -38,6 +38,9 @@ namespace Serilog
         /// <c>WriteTo.Providers()</c> configuration method, enabling other <see cref="ILoggerProvider"/>s to receive events. By
         /// default, only Serilog sinks will receive events.</param>
         /// <returns>The web host builder.</returns>
+#if HOSTBUILDER
+        [Obsolete("Prefer UseSerilog() on IHostBuilder")]
+#endif
         public static IWebHostBuilder UseSerilog(
             this IWebHostBuilder builder, 
             ILogger logger = null, 
@@ -83,6 +86,9 @@ namespace Serilog
         /// the Microsoft.Extensions.Logging API. Normally, equivalent Serilog sinks are used in place of providers. Specify
         /// <c>true</c> to write events to all providers.</param>
         /// <returns>The web host builder.</returns>
+#if HOSTBUILDER
+        [Obsolete("Prefer UseSerilog() on IHostBuilder")]
+#endif
         public static IWebHostBuilder UseSerilog(
             this IWebHostBuilder builder,
             Action<WebHostBuilderContext, LoggerConfiguration> configureLogger,
