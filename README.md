@@ -18,6 +18,7 @@ dotnet add package Serilog.AspNetCore
 
 ```csharp
 using Serilog;
+using Serilog.Events;
 
 public class Program
 {
@@ -197,10 +198,11 @@ The downside of initializing Serilog first is that services from the ASP.NET Cor
 
 To address this, Serilog supports two-stage initialization. An initial "bootstrap" logger is configured immediately when the program starts, and this is replaced by the fully-configured logger once the host has loaded.
 
-To use this technique, first replace the initial `CreateLogger()` call with `CreateBoostrapLogger()`:
+To use this technique, first replace the initial `CreateLogger()` call with `CreateBootstrapLogger()`:
 
 ```csharp
 using Serilog;
+using Serilog.Events;
 
 public class Program
 {
