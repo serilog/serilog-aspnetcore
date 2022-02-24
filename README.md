@@ -285,11 +285,13 @@ The Azure Diagnostic Log Stream ships events from any files in the `D:\home\LogF
             .WriteTo.Console()
             // Add this line:
             .WriteTo.File(
-                @"D:\home\LogFiles\Application\myapp.txt",
-                fileSizeLimitBytes: 1_000_000,
-                rollOnFileSizeLimit: true,
-                shared: true,
-                flushToDiskInterval: TimeSpan.FromSeconds(1))
+               System.IO.Path.Combine(Environment.GetEnvironmentVariable("HOME"), "LogFiles", "Application", "diagnostics.txt"),
+               rollingInterval: RollingInterval.Day,
+               fileSizeLimitBytes: 10 * 1024 * 1024,
+               retainedFileCountLimit: 2,
+               rollOnFileSizeLimit: true,
+               shared: true,
+               flushToDiskInterval: TimeSpan.FromSeconds(1))
             .CreateLogger();
 ```
 
