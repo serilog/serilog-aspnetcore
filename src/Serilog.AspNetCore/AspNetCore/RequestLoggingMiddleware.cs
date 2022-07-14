@@ -86,7 +86,7 @@ namespace Serilog.AspNetCore
             // Enrich diagnostic context
             _enrichDiagnosticContext?.Invoke(_diagnosticContext, httpContext);
 
-            if (!collector.TryComplete(out var collectedProperties))
+            if (!collector.TryComplete(out var collectedProperties, out var collectedException))
                 collectedProperties = NoProperties;
 
             // Last-in (correctly) wins...
@@ -98,7 +98,7 @@ namespace Serilog.AspNetCore
                 new LogEventProperty("Elapsed", new ScalarValue(elapsedMs))
             });
 
-            var evt = new LogEvent(DateTimeOffset.Now, level, ex, _messageTemplate, properties);
+            var evt = new LogEvent(DateTimeOffset.Now, level, ex ?? collectedException, _messageTemplate, properties);
             logger.Write(evt);
 
             return false;
