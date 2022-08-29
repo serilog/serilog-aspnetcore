@@ -18,6 +18,7 @@ using Serilog.Events;
 using Serilog.Extensions.Hosting;
 using Serilog.Parsing;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,6 +33,7 @@ namespace Serilog.AspNetCore
         readonly MessageTemplate _messageTemplate;
         readonly Action<IDiagnosticContext, HttpContext> _enrichDiagnosticContext;
         readonly Func<HttpContext, double, Exception, LogEventLevel> _getLevel;
+        readonly Func<HttpContext, string, double, int, IEnumerable<LogEventProperty>> _getMessageTemplateProperties;
         readonly ILogger _logger;
         readonly bool _includeQueryInRequestPath;
         static readonly LogEventProperty[] NoProperties = new LogEventProperty[0];
@@ -47,6 +49,7 @@ namespace Serilog.AspNetCore
             _messageTemplate = new MessageTemplateParser().Parse(options.MessageTemplate);
             _logger = options.Logger?.ForContext<RequestLoggingMiddleware>();
             _includeQueryInRequestPath = options.IncludeQueryInRequestPath;
+            _getMessageTemplateProperties = options.GetMessageTemplateProperties;
         }
 
         // ReSharper disable once UnusedMember.Global
@@ -90,13 +93,7 @@ namespace Serilog.AspNetCore
                 collectedProperties = NoProperties;
 
             // Last-in (correctly) wins...
-            var properties = collectedProperties.Concat(new[]
-            {
-                new LogEventProperty("RequestMethod", new ScalarValue(httpContext.Request.Method)),
-                new LogEventProperty("RequestPath", new ScalarValue(GetPath(httpContext, _includeQueryInRequestPath))),
-                new LogEventProperty("StatusCode", new ScalarValue(statusCode)),
-                new LogEventProperty("Elapsed", new ScalarValue(elapsedMs))
-            });
+            var properties = collectedProperties.Concat(_getMessageTemplateProperties(httpContext, GetPath(httpContext, _includeQueryInRequestPath), elapsedMs, statusCode));
 
             var evt = new LogEvent(DateTimeOffset.Now, level, ex ?? collectedException, _messageTemplate, properties);
             logger.Write(evt);
@@ -123,7 +120,7 @@ namespace Serilog.AspNetCore
             {
                 requestPath = httpContext.Request.Path.ToString();
             }
-            
+
             return requestPath;
         }
     }
