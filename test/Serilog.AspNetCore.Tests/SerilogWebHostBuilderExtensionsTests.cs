@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Serilog.Filters;
 using Serilog.AspNetCore.Tests.Support;
+using Serilog.Events;
+using System.Net.Http;
 
 // Newer frameworks provide IHostBuilder
 #pragma warning disable CS0618
@@ -64,6 +66,34 @@ namespace Serilog.AspNetCore.Tests
             Assert.Equal(200, completionEvent.Properties["StatusCode"].LiteralValue());
             Assert.Equal("GET", completionEvent.Properties["RequestMethod"].LiteralValue());
             Assert.True(completionEvent.Properties.ContainsKey("Elapsed"));
+        }
+
+        [Fact]
+        public async Task RequestLoggingMiddlewareShouldEnrichWithCustomisedProperties()
+        {
+            var (sink, web) = Setup(options =>
+            {
+                options.MessageTemplate = "HTTP {RequestMethod} responded {Status} in {ElapsedMilliseconds:0.0000} ms";
+                options.GetMessageTemplateProperties = (ctx, path, elapsedMs, status) =>
+                    new[]
+                    {
+                            new LogEventProperty("RequestMethod", new ScalarValue(ctx.Request.Method)),
+                            new LogEventProperty("Status", new ScalarValue(status)),
+                            new LogEventProperty("ElapsedMilliseconds", new ScalarValue(elapsedMs))
+                    };
+            });
+
+            await web.CreateClient().GetAsync("/resource");
+
+            Assert.NotEmpty(sink.Writes);
+
+            var completionEvent = sink.Writes.First(logEvent => Matching.FromSource<RequestLoggingMiddleware>()(logEvent));
+
+            Assert.Equal("string", completionEvent.Properties["SomeString"].LiteralValue());
+            Assert.Equal(200, completionEvent.Properties["Status"].LiteralValue());
+            Assert.Equal("GET", completionEvent.Properties["RequestMethod"].LiteralValue());
+            Assert.True(completionEvent.Properties.ContainsKey("ElapsedMilliseconds"));
+            Assert.False(completionEvent.Properties.ContainsKey("Elapsed"));
         }
 
         [Fact]

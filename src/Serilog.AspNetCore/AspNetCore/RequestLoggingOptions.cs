@@ -15,6 +15,7 @@
 using Microsoft.AspNetCore.Http;
 using Serilog.Events;
 using System;
+using System.Collections.Generic;
 
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 
@@ -34,6 +35,15 @@ namespace Serilog.AspNetCore
                 : ctx.Response.StatusCode > 499
                     ? LogEventLevel.Error
                     : LogEventLevel.Information;
+        
+        IEnumerable<LogEventProperty> DefaultGetMessageTemplateProperties(HttpContext httpContext, string requestPath, double elapsedMs, int statusCode) =>
+            new[]
+            {
+                new LogEventProperty("RequestMethod", new ScalarValue(httpContext.Request.Method)),
+                new LogEventProperty("RequestPath", new ScalarValue(requestPath)),
+                new LogEventProperty("StatusCode", new ScalarValue(statusCode)),
+                new LogEventProperty("Elapsed", new ScalarValue(elapsedMs))
+            };
 
         /// <summary>
         /// Gets or sets the message template. The default value is
@@ -75,12 +85,18 @@ namespace Serilog.AspNetCore
         public bool IncludeQueryInRequestPath { get; set; }
 
         /// <summary>
+        /// A function to specify the values of the MessageTemplateProperties.
+        /// </summary>
+        public Func<HttpContext, string, double, int, IEnumerable<LogEventProperty>> GetMessageTemplateProperties { get; set; }
+
+        /// <summary>
         /// Constructor
         /// </summary>
         public RequestLoggingOptions()
         {
             GetLevel = DefaultGetLevel;
             MessageTemplate = DefaultRequestCompletionMessageTemplate;
+            GetMessageTemplateProperties = DefaultGetMessageTemplateProperties;
         }
     }
 }
