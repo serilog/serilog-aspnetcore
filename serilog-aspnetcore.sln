@@ -17,6 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{9C21B9
 		README.md = README.md
 		assets\Serilog.snk = assets\Serilog.snk
 		Setup.ps1 = Setup.ps1
+		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.AspNetCore", "src\Serilog.AspNetCore\Serilog.AspNetCore.csproj", "{0549D23F-986B-4FB2-BACE-16FD7A7BC9EF}"

@@ -18,53 +18,38 @@ dotnet add package Serilog.AspNetCore
 
 ```csharp
 using Serilog;
-using Serilog.Events;
 
-public class Program
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
+
+try
 {
-    public static int Main(string[] args)
-    {
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-            .Enrich.FromLogContext()
-            .WriteTo.Console()
-            .CreateLogger();
+    Log.Information("Starting web application");
 
-        try
-        {
-            Log.Information("Starting web host");
-            CreateHostBuilder(args).Build().Run();
-            return 0;
-        }
-        catch (Exception ex)
-        {
-            Log.Fatal(ex, "Host terminated unexpectedly");
-            return 1;
-        }
-        finally
-        {
-            Log.CloseAndFlush();
-        }
-    }
-```
+    var builder = WebApplication.CreateBuilder(args);
 
-**Then**, add `UseSerilog()` to the Generic Host in `CreateHostBuilder()`.
+    builder.Host.UseSerilog(); // <-- Add this line
+    
+    var app = builder.Build();
 
-```csharp        
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .UseSerilog() // <-- Add this line
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
+    app.MapGet("/", () => "Hello World!");
+
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
 }
 ```
 
-**Finally**, clean up by removing the remaining configuration for the default logger:
+The `builder.Host.UseSerilog()` call will redirect all log events through your Serilog pipeline.
 
- * Remove the `"Logging"` section from _appsettings.*.json_ files (this can be replaced with [Serilog configuration](https://github.com/serilog/serilog-settings-configuration) as shown in [the _Sample_ project](https://github.com/serilog/serilog-aspnetcore/blob/dev/samples/Sample/Program.cs), if required)
- * Remove `UseApplicationInsights()` (this can be replaced with the [Serilog AI sink](https://github.com/serilog/serilog-sinks-applicationinsights), if required)
+**Finally**, clean up by removing the remaining configuration for the default logger, including the `"Logging"` section from _appsettings.*.json_ files (this can be replaced with [Serilog configuration](https://github.com/serilog/serilog-settings-configuration) as shown in [the _Sample_ project](https://github.com/serilog/serilog-aspnetcore/blob/dev/samples/Sample/Program.cs), if required).
 
 That's it! With the level bumped up a little you will see log output resembling:
 
@@ -118,23 +103,14 @@ To enable the middleware, first change the minimum level for `Microsoft.AspNetCo
             .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
 ```
 
-Then, in your application's _Startup.cs_, add the middleware with `UseSerilogRequestLogging()`:
+Then, in your application's _Program.cs_, add the middleware with `UseSerilogRequestLogging()`:
 
 ```csharp
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error");
-            }
+    var app = builder.Build();
 
-            app.UseSerilogRequestLogging(); // <-- Add this line
+    app.UseSerilogRequestLogging(); // <-- Add this line
 
-            // Other app configuration
+    // Other app configuration
 ```
 
 It's important that the `UseSerilogRequestLogging()` call appears _before_ handlers such as MVC. The middleware will not time or log components that appear before it in the pipeline. (This can be utilized to exclude noisy handlers from logging, such as `UseStaticFiles()`, by placing `UseSerilogRequestLogging()` after them.)
@@ -204,31 +180,21 @@ To use this technique, first replace the initial `CreateLogger()` call with `Cre
 using Serilog;
 using Serilog.Events;
 
-public class Program
-{
-    public static int Main(string[] args)
-    {
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-            .Enrich.FromLogContext()
-            .WriteTo.Console()
-            .CreateBootstrapLogger(); // <-- Change this line!
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateBootstrapLogger(); // <-- Change this line!
 ```
 
 Then, pass a callback to `UseSerilog()` that creates the final logger:
 
 ```csharp
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .UseSerilog((context, services, configuration) => configuration
-                    .ReadFrom.Configuration(context.Configuration)
-                    .ReadFrom.Services(services)
-                    .Enrich.FromLogContext()
-                    .WriteTo.Console())
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext()
+    .WriteTo.Console());
 ```
 
 It's important to note that the final logger **completely replaces** the bootstrap logger: if you want both to log to the console, for instance, you'll need to specify `WriteTo.Console()` in both places, as the example shows.
@@ -256,7 +222,7 @@ By default, Serilog ignores providers, since there are usually equivalent Serilo
 To have Serilog pass events to providers, **using two-stage initialization** as above, pass `writeToProviders: true` in the call to `UseSerilog()`:
 
 ```csharp
-    .UseSerilog(
+builder.Host.UseSerilog(
         (hostingContext, services, loggerConfiguration) => /* snip! */,
         writeToProviders: true)
 ```
@@ -276,23 +242,21 @@ To write newline-delimited JSON, pass a `CompactJsonFormatter` or `RenderedCompa
 The Azure Diagnostic Log Stream ships events from any files in the `D:\home\LogFiles\` folder. To enable this for your app, add a file sink to your `LoggerConfiguration`, taking care to set the `shared` and `flushToDiskInterval` parameters:
 
 ```csharp
-    public static int Main(string[] args)
-    {
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-            .Enrich.FromLogContext()
-            .WriteTo.Console()
-            // Add this line:
-            .WriteTo.File(
-               System.IO.Path.Combine(Environment.GetEnvironmentVariable("HOME"), "LogFiles", "Application", "diagnostics.txt"),
-               rollingInterval: RollingInterval.Day,
-               fileSizeLimitBytes: 10 * 1024 * 1024,
-               retainedFileCountLimit: 2,
-               rollOnFileSizeLimit: true,
-               shared: true,
-               flushToDiskInterval: TimeSpan.FromSeconds(1))
-            .CreateLogger();
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    // Add this line:
+    .WriteTo.File(
+       System.IO.Path.Combine(Environment.GetEnvironmentVariable("HOME"), "LogFiles", "Application", "diagnostics.txt"),
+       rollingInterval: RollingInterval.Day,
+       fileSizeLimitBytes: 10 * 1024 * 1024,
+       retainedFileCountLimit: 2,
+       rollOnFileSizeLimit: true,
+       shared: true,
+       flushToDiskInterval: TimeSpan.FromSeconds(1))
+    .CreateLogger();
 ```
 
 ### Pushing properties to the `ILogger<T>`
