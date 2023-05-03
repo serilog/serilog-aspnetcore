@@ -286,3 +286,7 @@ using (logger.PushProperty("OperationType", "update"))
     // UserId and OperationType are set for all logging events in these brackets
 }
 ```
+
+### Versioning
+
+This package tracks the versioning and target framework support of its (indirect) [_Microsoft.Extensions.Hosting_](https://nuget.org/packages/Microsoft.Extensions.Hosting) dependency.
