@@ -26,10 +26,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.AspNetCore.Tests", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample", "samples\Sample\Sample.csproj", "{4FA0FE41-973E-4555-AB4A-0F400DBA9DD3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Extensions.Logging", "..\serilog-extensions-logging\src\Serilog.Extensions.Logging\Serilog.Extensions.Logging.csproj", "{03EC6680-9D1F-4D51-A1F4-E6863781982B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Extensions.Hosting", "..\serilog-extensions-hosting\src\Serilog.Extensions.Hosting\Serilog.Extensions.Hosting.csproj", "{49220185-3DA4-49C1-B08C-F5C38F53378B}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,14 +44,6 @@ Global
 		{4FA0FE41-973E-4555-AB4A-0F400DBA9DD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4FA0FE41-973E-4555-AB4A-0F400DBA9DD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4FA0FE41-973E-4555-AB4A-0F400DBA9DD3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{03EC6680-9D1F-4D51-A1F4-E6863781982B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{03EC6680-9D1F-4D51-A1F4-E6863781982B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{03EC6680-9D1F-4D51-A1F4-E6863781982B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{03EC6680-9D1F-4D51-A1F4-E6863781982B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{49220185-3DA4-49C1-B08C-F5C38F53378B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{49220185-3DA4-49C1-B08C-F5C38F53378B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{49220185-3DA4-49C1-B08C-F5C38F53378B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{49220185-3DA4-49C1-B08C-F5C38F53378B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -64,8 +52,6 @@ Global
 		{0549D23F-986B-4FB2-BACE-16FD7A7BC9EF} = {A1893BD1-333D-4DFE-A0F0-DDBB2FE526E0}
 		{AD51759B-CD58-473F-9620-0B0E56A123A1} = {E30F638E-BBBE-4AD1-93CE-48CC69CFEFE1}
 		{4FA0FE41-973E-4555-AB4A-0F400DBA9DD3} = {F2407211-6043-439C-8E06-3641634332E7}
-		{03EC6680-9D1F-4D51-A1F4-E6863781982B} = {A1893BD1-333D-4DFE-A0F0-DDBB2FE526E0}
-		{49220185-3DA4-49C1-B08C-F5C38F53378B} = {A1893BD1-333D-4DFE-A0F0-DDBB2FE526E0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {811E61C5-3871-4633-AFAE-B35B619C8A10}

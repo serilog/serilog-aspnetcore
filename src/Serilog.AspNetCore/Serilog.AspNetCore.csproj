@@ -31,8 +31,8 @@
   
   <ItemGroup>
     <!-- The versions of all references in this group must match the major and minor components of the package version prefix. -->
-    <PackageReference Include="Serilog.Settings.Configuration" Version="3.4.0" />
-    <ProjectReference Include="../../../serilog-extensions-hosting/src/Serilog.Extensions.Hosting/Serilog.Extensions.Hosting.csproj" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="7.0.0-dev-*" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="7.0.0-dev-*" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
   </ItemGroup>
