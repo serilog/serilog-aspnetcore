@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 
-[assembly: AssemblyVersion("2.0.0.0")]
+[assembly: AssemblyVersion("7.0.0.0")]
 
 [assembly: InternalsVisibleTo("Serilog.AspNetCore.Tests, PublicKey=" +
                               "0024000004800000940000000602000000240000525341310004000001000100fb8d13fd344a1c" +
