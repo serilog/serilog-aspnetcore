@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Serilog support for ASP.NET Core logging</Description>
@@ -19,8 +19,9 @@
 
   <ItemGroup>
     <None Include="..\..\assets\icon.png" Pack="true" Visible="false" PackagePath="" />
+	<InternalsVisibleTo Include="Serilog.AspNetCore.Tests" Key="0024000004800000940000000602000000240000525341310004000001000100fb8d13fd344a1c6fe0fe83ef33c1080bf30690765bc6eb0df26ebfdf8f21670c64265b30db09f73a0dea5b3db4c9d18dbf6d5a25af5ce9016f281014d79dc3b4201ac646c451830fc7e61a2dfd633d34c39f87b81894191652df5ac63cc40c77f3542f702bda692e6e8a9158353df189007a49da0f3cfd55eb250066b19485ec" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.12.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
@@ -28,7 +29,7 @@
     <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
     <PackageReference Include="Serilog.Formatting.Compact" Version="1.1.0" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <!-- The versions of all references in this group must match the major and minor components of the package version prefix. -->
     <PackageReference Include="Serilog.Extensions.Hosting" Version="7.0.0" />
@@ -41,10 +42,10 @@
     <!-- I.e. all modern/supported non-Framework .NET SKUs -->
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-  
+
   <ItemGroup Condition=" '$(TargetFramework)' == 'net462' or '$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netstandard2.1' ">
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
   </ItemGroup>
-  
+
 </Project>

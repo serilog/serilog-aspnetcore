@@ -160,7 +160,7 @@ public class SerilogWebHostBuilderExtensionsTests : IClassFixture<SerilogWebAppl
                         return Task.CompletedTask;
                     }); // 200 OK
                 })
-                .UseSerilog(logger, dispose));
+                .ConfigureServices(sc => sc.AddSerilog(logger, dispose)));
 
         return web;
     }
