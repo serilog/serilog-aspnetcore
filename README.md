@@ -163,6 +163,13 @@ app.UseSerilogRequestLogging(options =>
         diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
         diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
     };
+    
+    // Use an async method to add additional properties that can only be retrieved 
+    // asynchronously like request body
+    options.EnrichDiagnosticContextAsync = async (diagnosticContext, httpContext) =>
+    {
+        await AddRequestBodyAsync(diagnosticContext, httpContext);
+    };
 });
 ```
 

@@ -28,6 +28,7 @@ class RequestLoggingMiddleware
     readonly DiagnosticContext _diagnosticContext;
     readonly MessageTemplate _messageTemplate;
     readonly Action<IDiagnosticContext, HttpContext>? _enrichDiagnosticContext;
+    readonly Func<IDiagnosticContext, HttpContext, Task>? _enrichDiagnosticContextAsync;
     readonly Func<HttpContext, double, Exception?, LogEventLevel> _getLevel;
     readonly Func<HttpContext, string, double, int, IEnumerable<LogEventProperty>> _getMessageTemplateProperties;
     readonly ILogger? _logger;
@@ -42,6 +43,7 @@ class RequestLoggingMiddleware
 
         _getLevel = options.GetLevel;
         _enrichDiagnosticContext = options.EnrichDiagnosticContext;
+        _enrichDiagnosticContextAsync = options.EnrichDiagnosticContextAsync;
         _messageTemplate = new MessageTemplateParser().Parse(options.MessageTemplate);
         _logger = options.Logger?.ForContext<RequestLoggingMiddleware>();
         _includeQueryInRequestPath = options.IncludeQueryInRequestPath;
@@ -61,17 +63,28 @@ class RequestLoggingMiddleware
             await _next(httpContext);
             var elapsedMs = GetElapsedMilliseconds(start, Stopwatch.GetTimestamp());
             var statusCode = httpContext.Response.StatusCode;
+            await CallEnrichDiagnosticContextAsync(httpContext);
             LogCompletion(httpContext, collector, statusCode, elapsedMs, null);
         }
         catch (Exception ex)
             // Never caught, because `LogCompletion()` returns false. This ensures e.g. the developer exception page is still
             // shown, although it does also mean we see a duplicate "unhandled exception" event from ASP.NET Core.
+            // We do not call _enrichDiagnosticContextAsync> here because we cannot do that in the filter and do not
+            // want to unwind the stack by rethrowing the exception.
             when (LogCompletion(httpContext, collector, 500, GetElapsedMilliseconds(start, Stopwatch.GetTimestamp()), ex))
         {
         }
         finally
         {
             collector.Dispose();
+        }
+    }
+
+    async Task CallEnrichDiagnosticContextAsync(HttpContext httpContext)
+    {
+        if (_enrichDiagnosticContextAsync != null)
+        {
+            await _enrichDiagnosticContextAsync.Invoke(_diagnosticContext, httpContext);    
         }
     }
 
