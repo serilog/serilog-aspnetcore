@@ -53,20 +53,19 @@ class RequestLoggingMiddleware
     {
         if (httpContext == null) throw new ArgumentNullException(nameof(httpContext));
 
-        var start = Stopwatch.GetTimestamp();
+        var stopwatch = Stopwatch.StartNew();
 
         var collector = _diagnosticContext.BeginCollection();
         try
         {
             await _next(httpContext);
-            var elapsedMs = GetElapsedMilliseconds(start, Stopwatch.GetTimestamp());
             var statusCode = httpContext.Response.StatusCode;
-            LogCompletion(httpContext, collector, statusCode, elapsedMs, null);
+            LogCompletion(httpContext, collector, statusCode, stopwatch.ElapsedMilliseconds, null);
         }
         catch (Exception ex)
             // Never caught, because `LogCompletion()` returns false. This ensures e.g. the developer exception page is still
             // shown, although it does also mean we see a duplicate "unhandled exception" event from ASP.NET Core.
-            when (LogCompletion(httpContext, collector, 500, GetElapsedMilliseconds(start, Stopwatch.GetTimestamp()), ex))
+            when (LogCompletion(httpContext, collector, 500, stopwatch.ElapsedMilliseconds, ex))
         {
         }
         finally
@@ -95,11 +94,6 @@ class RequestLoggingMiddleware
         logger.Write(evt);
 
         return false;
-    }
-
-    static double GetElapsedMilliseconds(long start, long stop)
-    {
-        return (stop - start) * 1000 / (double)Stopwatch.Frequency;
     }
 
     static string GetPath(HttpContext httpContext, bool includeQueryInRequestPath)
