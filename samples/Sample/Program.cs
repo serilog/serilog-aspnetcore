@@ -24,7 +24,7 @@ public static class Program
         }
         catch (Exception ex)
         {
-            Log.Fatal(ex, "An unhandled exception occured during bootstrapping");
+            Log.Fatal(ex, "An unhandled exception occurred during bootstrapping");
             return 1;
         }
         finally
@@ -40,5 +40,5 @@ public static class Program
                 .ReadFrom.Services(services)
                 .Enrich.FromLogContext()
                 .WriteTo.Console())
-            .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+            .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>());
 }
