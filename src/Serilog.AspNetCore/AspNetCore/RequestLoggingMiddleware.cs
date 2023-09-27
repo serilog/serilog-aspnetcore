@@ -56,42 +56,58 @@ class RequestLoggingMiddleware
         if (httpContext == null) throw new ArgumentNullException(nameof(httpContext));
 
         var start = Stopwatch.GetTimestamp();
-
         var collector = _diagnosticContext.BeginCollection();
+        ILogger? logger = null;
+        var level = LogEventLevel.Information; // only used if _getLevel throws an exception
+        double elapsedMs;
+
         try
         {
             await _next(httpContext);
-            var elapsedMs = GetElapsedMilliseconds(start, Stopwatch.GetTimestamp());
+            elapsedMs = GetElapsedMilliseconds(start, Stopwatch.GetTimestamp());
             var statusCode = httpContext.Response.StatusCode;
-            await CallEnrichDiagnosticContextAsync(httpContext);
-            LogCompletion(httpContext, collector, statusCode, elapsedMs, null);
+            logger = _logger ?? Log.ForContext<RequestLoggingMiddleware>();
+            level = _getLevel(httpContext, elapsedMs, null);
+            LogCompletion(httpContext, collector, statusCode, elapsedMs, logger, level, null);
         }
         catch (Exception ex)
             // Never caught, because `LogCompletion()` returns false. This ensures e.g. the developer exception page is still
             // shown, although it does also mean we see a duplicate "unhandled exception" event from ASP.NET Core.
-            // We do not call _enrichDiagnosticContextAsync> here because we cannot do that in the filter and do not
-            // want to unwind the stack by rethrowing the exception.
-            when (LogCompletion(httpContext, collector, 500, GetElapsedMilliseconds(start, Stopwatch.GetTimestamp()), ex))
+            // The elapsedMs is required for calculating the level and for LogCompletion.
+            // The level is required in the finally block.
+            when ((elapsedMs = GetElapsedMilliseconds(start, Stopwatch.GetTimestamp())) >= 0
+                  && (level = _getLevel(httpContext, elapsedMs, ex)) >= 0
+                  && LogCompletion(httpContext, collector, 500, elapsedMs, logger, level, ex))
         {
         }
         finally
         {
+            await CallEnrichDiagnosticContextAsync(httpContext, logger, level);
             collector.Dispose();
         }
     }
 
-    async Task CallEnrichDiagnosticContextAsync(HttpContext httpContext)
+    async Task CallEnrichDiagnosticContextAsync(HttpContext httpContext, ILogger? logger, LogEventLevel level)
     {
-        if (_enrichDiagnosticContextAsync != null)
+        try
         {
-            await _enrichDiagnosticContextAsync.Invoke(_diagnosticContext, httpContext);    
+            logger ??= Log.ForContext<RequestLoggingMiddleware>();
+            if (!logger.IsEnabled(level)) return;
+
+            if (_enrichDiagnosticContextAsync != null)
+            {
+                await _enrichDiagnosticContextAsync.Invoke(_diagnosticContext, httpContext);
+            }
+        }
+        catch
+        {
+            // we want to avoid throwing exceptions in the logging pipeline, so we just swallow them here
         }
     }
 
-    bool LogCompletion(HttpContext httpContext, DiagnosticContextCollector collector, int statusCode, double elapsedMs, Exception? ex)
+    bool LogCompletion(HttpContext httpContext, DiagnosticContextCollector collector, int statusCode, double elapsedMs, ILogger? logger, LogEventLevel level, Exception? ex)
     {
-        var logger = _logger ?? Log.ForContext<RequestLoggingMiddleware>();
-        var level = _getLevel(httpContext, elapsedMs, ex);
+        logger ??= Log.ForContext<RequestLoggingMiddleware>();
 
         if (!logger.IsEnabled(level)) return false;
 
