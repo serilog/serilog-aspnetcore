@@ -57,7 +57,7 @@ class RequestLoggingMiddleware
 
         var start = Stopwatch.GetTimestamp();
         var collector = _diagnosticContext.BeginCollection();
-        ILogger? logger = null;
+        var logger = _logger;
         var level = LogEventLevel.Information; // only used if _getLevel throws an exception
         double elapsedMs;
 
