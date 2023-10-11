@@ -1,4 +1,5 @@
 using Serilog;
+using Serilog.Templates;
 
 namespace Sample;
 
@@ -39,6 +40,8 @@ public static class Program
                 .ReadFrom.Configuration(context.Configuration)
                 .ReadFrom.Services(services)
                 .Enrich.FromLogContext()
-                .WriteTo.Console())
+                .WriteTo.Console(new ExpressionTemplate(
+                    // Include trace and span ids when present.
+                    "[{@t:HH:mm:ss} {@l:u3}{#if @tr is not null} ({@tr}:{@sp}){#end}] {@m}\n{@x}")))
             .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>());
 }
