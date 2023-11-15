@@ -42,6 +42,6 @@ public static class Program
                 .Enrich.FromLogContext()
                 .WriteTo.Console(new ExpressionTemplate(
                     // Include trace and span ids when present.
-                    "[{@t:HH:mm:ss} {@l:u3}{#if @tr is not null} ({@tr}:{@sp}){#end}] {@m}\n{@x}")))
+                    "[{@t:HH:mm:ss} {@l:u3}{#if @tr is not null} ({substring(@tr,0,4)}:{substring(@sp,0,4)}){#end}] {@m}\n{@x}")))
             .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>());
 }
