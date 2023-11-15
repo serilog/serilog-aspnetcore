@@ -1,11 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-    <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\..\src\Serilog.AspNetCore\Serilog.AspNetCore.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Serilog.AspNetCore\Serilog.AspNetCore.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Serilog.Expressions" Version="4.0.0" />
+  </ItemGroup>
 
 </Project>

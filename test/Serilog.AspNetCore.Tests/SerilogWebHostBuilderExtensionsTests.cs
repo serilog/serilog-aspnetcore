@@ -160,9 +160,22 @@ public class SerilogWebHostBuilderExtensionsTests : IClassFixture<SerilogWebAppl
                         return Task.CompletedTask;
                     }); // 200 OK
                 })
-                .UseSerilog(logger, dispose));
+                .ConfigureServices(sc => sc.AddSerilog(logger, dispose)));
 
         return web;
+    }
+    
+    [Fact]
+    public async Task RequestLoggingMiddlewareShouldAddTraceAndSpanIds()
+    {
+        var (sink, web) = Setup();
+
+        await web.CreateClient().GetAsync("/resource");
+
+        var completionEvent = sink.Writes.First(logEvent => Matching.FromSource<RequestLoggingMiddleware>()(logEvent));
+
+        Assert.NotNull(completionEvent.TraceId);
+        Assert.NotNull(completionEvent.SpanId);
     }
 
     (SerilogSink, WebApplicationFactory<TestStartup>) Setup(

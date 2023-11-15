@@ -32,7 +32,7 @@ class RequestLoggingMiddleware
     readonly Func<HttpContext, string, double, int, IEnumerable<LogEventProperty>> _getMessageTemplateProperties;
     readonly ILogger? _logger;
     readonly bool _includeQueryInRequestPath;
-    static readonly LogEventProperty[] NoProperties = new LogEventProperty[0];
+    static readonly LogEventProperty[] NoProperties = Array.Empty<LogEventProperty>();
 
     public RequestLoggingMiddleware(RequestDelegate next, DiagnosticContext diagnosticContext, RequestLoggingOptions options)
     {
@@ -82,7 +82,6 @@ class RequestLoggingMiddleware
 
         if (!logger.IsEnabled(level)) return false;
 
-        // Enrich diagnostic context
         _enrichDiagnosticContext?.Invoke(_diagnosticContext, httpContext);
 
         if (!collector.TryComplete(out var collectedProperties, out var collectedException))
@@ -91,7 +90,19 @@ class RequestLoggingMiddleware
         // Last-in (correctly) wins...
         var properties = collectedProperties.Concat(_getMessageTemplateProperties(httpContext, GetPath(httpContext, _includeQueryInRequestPath), elapsedMs, statusCode));
 
-        var evt = new LogEvent(DateTimeOffset.Now, level, ex ?? collectedException, _messageTemplate, properties);
+        var (traceId, spanId) = Activity.Current is { } activity ?
+            (activity.TraceId, activity.SpanId) :
+            (default(ActivityTraceId), default(ActivitySpanId));
+
+        var evt = new LogEvent(
+            DateTimeOffset.Now,
+            level,
+            ex ?? collectedException,
+            _messageTemplate,
+            properties,
+            traceId,
+            spanId);
+        
         logger.Write(evt);
 
         return false;

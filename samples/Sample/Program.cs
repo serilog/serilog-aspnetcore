@@ -1,4 +1,5 @@
 using Serilog;
+using Serilog.Templates;
 
 namespace Sample;
 
@@ -24,7 +25,7 @@ public static class Program
         }
         catch (Exception ex)
         {
-            Log.Fatal(ex, "An unhandled exception occured during bootstrapping");
+            Log.Fatal(ex, "An unhandled exception occurred during bootstrapping");
             return 1;
         }
         finally
@@ -39,6 +40,8 @@ public static class Program
                 .ReadFrom.Configuration(context.Configuration)
                 .ReadFrom.Services(services)
                 .Enrich.FromLogContext()
-                .WriteTo.Console())
-            .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+                .WriteTo.Console(new ExpressionTemplate(
+                    // Include trace and span ids when present.
+                    "[{@t:HH:mm:ss} {@l:u3}{#if @tr is not null} ({substring(@tr,0,4)}:{substring(@sp,0,4)}){#end}] {@m}\n{@x}")))
+            .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>());
 }
