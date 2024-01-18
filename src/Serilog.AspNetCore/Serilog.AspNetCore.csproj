@@ -13,7 +13,6 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/serilog/serilog-aspnetcore</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <RootNamespace>Serilog</RootNamespace>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
