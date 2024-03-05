@@ -276,12 +276,12 @@ using (logger.BeginScope(new Dictionary<string, object>
 }
 ```
 
-The code above results in the same outcome as if you would push properties in the **ILogger** in Serilog.
+The code above results in the same outcome as if you would push properties in the **LogContext** in Serilog. More details can be found in https://github.com/serilog/serilog/wiki/Enrichment#the-logcontext.
 
 ```csharp
-// Serilog ILogger
-using (logger.PushProperty("UserId", "svrooij"))
-using (logger.PushProperty("OperationType", "update"))
+// Serilog LogContext
+using (LogContext.PushProperty("UserId", "svrooij"))
+using (LogContext.PushProperty("OperationType", "update"))
 {
     // UserId and OperationType are set for all logging events in these brackets
 }
