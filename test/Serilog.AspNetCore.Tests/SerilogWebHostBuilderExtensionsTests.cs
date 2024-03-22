@@ -71,12 +71,11 @@ public class SerilogWebHostBuilderExtensionsTests : IClassFixture<SerilogWebAppl
         {
             options.MessageTemplate = "HTTP {RequestMethod} responded {Status} in {ElapsedMilliseconds:0.0000} ms";
             options.GetMessageTemplateProperties = (ctx, _, elapsedMs, status) =>
-                new[]
-                {
+                [
                     new LogEventProperty("RequestMethod", new ScalarValue(ctx.Request.Method)),
                     new LogEventProperty("Status", new ScalarValue(status)),
                     new LogEventProperty("ElapsedMilliseconds", new ScalarValue(elapsedMs))
-                };
+                ];
         });
 
         await web.CreateClient().GetAsync("/resource");
@@ -164,7 +163,7 @@ public class SerilogWebHostBuilderExtensionsTests : IClassFixture<SerilogWebAppl
 
         return web;
     }
-    
+
     [Fact]
     public async Task RequestLoggingMiddlewareShouldAddTraceAndSpanIds()
     {

@@ -8,7 +8,7 @@ namespace Serilog.AspNetCore.Tests.Support;
 
 public class SerilogSink : ILogEventSink
 {
-    public List<LogEvent> Writes { get; set; } = new();
+    public List<LogEvent> Writes { get; set; } = [];
 
     public void Emit(LogEvent logEvent)
     {
