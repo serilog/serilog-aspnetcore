@@ -7,7 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Serilog.AspNetCore\Serilog.AspNetCore.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Serilog.Expressions" Version="4.0.0" />
   </ItemGroup>
