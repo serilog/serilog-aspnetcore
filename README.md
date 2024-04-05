@@ -4,7 +4,10 @@ Serilog logging for ASP.NET Core. This package routes ASP.NET Core log messages 
 
 With _Serilog.AspNetCore_ installed and configured, you can write log messages directly through Serilog or any `ILogger` interface injected by ASP.NET. All loggers will use the same underlying implementation, levels, and destinations.
 
-**.NET Framework** and .NET Core 2.x are supported by version 3.4.0 of this package. Recent versions of _Serilog.AspNetCore_ require .NET Core 3.x, .NET 5, or later.
+**Versioning:** This package tracks the versioning and target framework support of its
+[_Microsoft.Extensions.Hosting_](https://nuget.org/packages/Microsoft.Extensions.Hosting) dependency. Most users should choose the version of _Serilog.AspNetCore_ that matches
+their application's target framework. I.e. if you're targeting .NET 7.x, choose a 7.x version of _Serilog.AspNetCore_. If
+you're targeting .NET 8.x, choose an 8.x _Serilog.AspNetCore_ version, and so on.
 
 ### Instructions
 
@@ -28,11 +31,9 @@ try
     Log.Information("Starting web application");
 
     var builder = WebApplication.CreateBuilder(args);
-
-    builder.Host.UseSerilog(); // <-- Add this line
+    builder.Services.AddSerilog(); // <-- Add this line
     
     var app = builder.Build();
-
     app.MapGet("/", () => "Hello World!");
 
     app.Run();
@@ -47,23 +48,21 @@ finally
 }
 ```
 
-The `builder.Host.UseSerilog()` call will redirect all log events through your Serilog pipeline.
+The `builder.Services.AddSerilog()` call will redirect all log events through your Serilog pipeline.
 
 **Finally**, clean up by removing the remaining configuration for the default logger, including the `"Logging"` section from _appsettings.*.json_ files (this can be replaced with [Serilog configuration](https://github.com/serilog/serilog-settings-configuration) as shown in [the _Sample_ project](https://github.com/serilog/serilog-aspnetcore/blob/dev/samples/Sample/Program.cs), if required).
 
 That's it! With the level bumped up a little you will see log output resembling:
 
 ```
-[22:14:44.646 DBG] RouteCollection.RouteAsync
-    Routes: 
-        Microsoft.AspNet.Mvc.Routing.AttributeRoute
-        {controller=Home}/{action=Index}/{id?}
-    Handled? True
-[22:14:44.647 DBG] RouterMiddleware.Invoke
-    Handled? True
-[22:14:45.706 DBG] /lib/jquery/jquery.js not modified
-[22:14:45.706 DBG] /css/site.css not modified
-[22:14:45.741 DBG] Handled. Status code: 304 File: /css/site.css
+[12:01:43 INF] Starting web application
+[12:01:44 INF] Now listening on: http://localhost:5000
+[12:01:44 INF] Application started. Press Ctrl+C to shut down.
+[12:01:44 INF] Hosting environment: Development
+[12:01:44 INF] Content root path: serilog-aspnetcore/samples/Sample
+[12:01:47 WRN] Failed to determine the https port for redirect.
+[12:01:47 INF] Hello, world!
+[12:01:47 INF] HTTP GET / responded 200 in 95.0581 ms
 ```
 
 **Tip:** to see Serilog output in the Visual Studio output window when running under IIS, either select _ASP.NET Core Web Server_ from the _Show output from_ drop-down list, or replace `WriteTo.Console()` in the logger configuration with `WriteTo.Debug()`.
@@ -97,11 +96,15 @@ Or [as JSON](https://github.com/serilog/serilog-formatting-compact):
 }
 ```
 
-To enable the middleware, first change the minimum level for `Microsoft.AspNetCore` to `Warning` in your logger configuration or _appsettings.json_ file:
+To enable the middleware, first change the minimum level for the noisy ASP.NET Core log sources to `Warning` in your logger configuration or _appsettings.json_ file:
 
 ```csharp
-            .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.AspNetCore.Mvc", LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
 ```
+
+> **Tip:** add `{SourceContext}` to your console logger's output template to see the names of loggers; this can help track down the source of a noisy log event to suppress.
 
 Then, in your application's _Program.cs_, add the middleware with `UseSerilogRequestLogging()`:
 
@@ -187,11 +190,11 @@ Log.Logger = new LoggerConfiguration()
     .CreateBootstrapLogger(); // <-- Change this line!
 ```
 
-Then, pass a callback to `UseSerilog()` that creates the final logger:
+Then, pass a callback to `AddSerilog()` that creates the final logger:
 
 ```csharp
-builder.Host.UseSerilog((context, services, configuration) => configuration
-    .ReadFrom.Configuration(context.Configuration)
+builder.Services.AddSerilog((services, lc) => lc
+    .ReadFrom.Configuration(builder.Configuration)
     .ReadFrom.Services(services)
     .Enrich.FromLogContext()
     .WriteTo.Console());
@@ -201,7 +204,7 @@ It's important to note that the final logger **completely replaces** the bootstr
 
 #### Consuming `appsettings.json` configuration
 
-**Using two-stage initialization**, insert the `ReadFrom.Configuration(context.Configuration)` call shown in the example above. The JSON configuration syntax is documented in [the _Serilog.Settings.Configuration_ README](https://github.com/serilog/serilog-settings-configuration).
+**Using two-stage initialization**, insert the `ReadFrom.Configuration(builder.Configuration)` call shown in the example above. The JSON configuration syntax is documented in [the _Serilog.Settings.Configuration_ README](https://github.com/serilog/serilog-settings-configuration).
 
 #### Injecting services into enrichers and sinks
 
@@ -212,20 +215,6 @@ It's important to note that the final logger **completely replaces** the bootstr
  * `ILogEventFilter`
  * `ILogEventSink`
  * `LoggingLevelSwitch`
-
-#### Enabling `Microsoft.Extensions.Logging.ILoggerProvider`s
-
-Serilog sends events to outputs called _sinks_, that implement Serilog's `ILogEventSink` interface, and are added to the logging pipeline using `WriteTo`. _Microsoft.Extensions.Logging_ has a similar concept called _providers_, and these implement `ILoggerProvider`. Providers are what the default logging configuration creates under the hood through methods like `AddConsole()`.
-
-By default, Serilog ignores providers, since there are usually equivalent Serilog sinks available, and these work more efficiently with Serilog's pipeline. If provider support is needed, it can be optionally enabled.
-
-To have Serilog pass events to providers, **using two-stage initialization** as above, pass `writeToProviders: true` in the call to `UseSerilog()`:
-
-```csharp
-builder.Host.UseSerilog(
-        (hostingContext, services, loggerConfiguration) => /* snip! */,
-        writeToProviders: true)
-```
 
 ### JSON output
 
@@ -286,7 +275,3 @@ using (LogContext.PushProperty("OperationType", "update"))
     // UserId and OperationType are set for all logging events in these brackets
 }
 ```
-
-### Versioning
-
-This package tracks the versioning and target framework support of its (indirect) [_Microsoft.Extensions.Hosting_](https://nuget.org/packages/Microsoft.Extensions.Hosting) dependency.
