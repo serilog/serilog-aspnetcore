@@ -4,7 +4,7 @@ using Serilog.Templates;
 using Serilog.Templates.Themes;
 
 // The initial "bootstrap" logger is able to log errors during start-up. It's completely replaced by the
-// logger configured in `UseSerilog()` below, once configuration and dependency-injection have both been
+// logger configured in `AddSerilog()` below, once configuration and dependency-injection have both been
 // set up successfully.
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
