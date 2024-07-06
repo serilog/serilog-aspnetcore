@@ -273,5 +273,5 @@ using (LogContext.PushProperty("UserId", "svrooij"))
 using (LogContext.PushProperty("OperationType", "update"))
 {
     // UserId and OperationType are set for all logging events in these brackets
-}
+}//test
 ```
