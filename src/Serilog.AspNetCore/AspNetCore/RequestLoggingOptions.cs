@@ -35,13 +35,12 @@ public class RequestLoggingOptions
                 : LogEventLevel.Information;
 
     static IEnumerable<LogEventProperty> DefaultGetMessageTemplateProperties(HttpContext httpContext, string requestPath, double elapsedMs, int statusCode) =>
-        new[]
-        {
+        [
             new LogEventProperty("RequestMethod", new ScalarValue(httpContext.Request.Method)),
             new LogEventProperty("RequestPath", new ScalarValue(requestPath)),
             new LogEventProperty("StatusCode", new ScalarValue(statusCode)),
             new LogEventProperty("Elapsed", new ScalarValue(elapsedMs))
-        };
+        ];
 
     /// <summary>
     /// Gets or sets the message template. The default value is

@@ -32,7 +32,7 @@ class RequestLoggingMiddleware
     readonly Func<HttpContext, string, double, int, IEnumerable<LogEventProperty>> _getMessageTemplateProperties;
     readonly ILogger? _logger;
     readonly bool _includeQueryInRequestPath;
-    static readonly LogEventProperty[] NoProperties = Array.Empty<LogEventProperty>();
+    static readonly LogEventProperty[] NoProperties = [];
 
     public RequestLoggingMiddleware(RequestDelegate next, DiagnosticContext diagnosticContext, RequestLoggingOptions options)
     {
@@ -102,7 +102,7 @@ class RequestLoggingMiddleware
             properties,
             traceId,
             spanId);
-        
+
         logger.Write(evt);
 
         return false;
