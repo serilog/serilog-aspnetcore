@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Serilog support for ASP.NET Core logging</Description>
     <!-- This must match the major and minor components of the referenced *.Extensions.* packages (and highest supported .NET TFM). -->
-    <VersionPrefix>8.0.2</VersionPrefix>
+    <VersionPrefix>8.0.3</VersionPrefix>
     <Authors>Microsoft;Serilog Contributors</Authors>
     <TargetFrameworks>net462;netstandard2.0;net6.0;net7.0;net8.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
