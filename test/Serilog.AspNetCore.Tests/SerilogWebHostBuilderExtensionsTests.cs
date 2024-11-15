@@ -38,6 +38,20 @@ public class SerilogWebHostBuilderExtensionsTests : IClassFixture<SerilogWebAppl
 
         Assert.Equal(dispose, logger.IsDisposed);
     }
+    
+    [Fact]
+    public async Task DisposeAsyncShouldBeHandled()
+    {
+        var logger = new DisposeTrackingLogger();
+        await using (var web = Setup(logger, dispose: true))
+        {
+            await web.CreateClient().GetAsync("/");
+        }
+
+        Assert.Multiple(
+            () => Assert.True(logger.IsDisposedAsync),
+            () => Assert.False(logger.IsDisposed));
+    }
 
     [Fact]
     public async Task RequestLoggingMiddlewareShouldEnrich()

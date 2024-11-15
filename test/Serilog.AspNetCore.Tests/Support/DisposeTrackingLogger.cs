@@ -4,9 +4,10 @@ using Serilog.Events;
 
 namespace Serilog.AspNetCore.Tests.Support;
 
-sealed class DisposeTrackingLogger : ILogger, IDisposable
+sealed class DisposeTrackingLogger : ILogger, IDisposable, IAsyncDisposable
 {
     public bool IsDisposed { get; private set; }
+    public bool IsDisposedAsync { get; private set; }
 
     public ILogger ForContext(ILogEventEnricher enricher)
     {
@@ -351,5 +352,11 @@ sealed class DisposeTrackingLogger : ILogger, IDisposable
     public void Dispose()
     {
         IsDisposed = true;
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        IsDisposedAsync = true;
+        return default;
     }
 }
