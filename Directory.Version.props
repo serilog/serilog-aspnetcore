@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- This must match the major and minor components of the referenced *.Extensions.* packages (and highest supported .NET TFM). -->
+    <VersionPrefix>9.0.0</VersionPrefix>
+  </PropertyGroup>
+</Project>

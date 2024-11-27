@@ -88,7 +88,7 @@ class RequestLoggingMiddleware
             collectedProperties = NoProperties;
 
         // Last-in (correctly) wins...
-        var properties = collectedProperties.Concat(_getMessageTemplateProperties(httpContext, GetPath(httpContext, _includeQueryInRequestPath), elapsedMs, statusCode));
+        var properties = (collectedProperties ?? []).Concat(_getMessageTemplateProperties(httpContext, GetPath(httpContext, _includeQueryInRequestPath), elapsedMs, statusCode));
 
         var (traceId, spanId) = Activity.Current is { } activity ?
             (activity.TraceId, activity.SpanId) :
