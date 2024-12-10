@@ -36,7 +36,7 @@ try
     var app = builder.Build();
     app.MapGet("/", () => "Hello World!");
 
-    app.Run();
+    await app.RunAsync();
 }
 catch (Exception ex)
 {
@@ -44,7 +44,7 @@ catch (Exception ex)
 }
 finally
 {
-    Log.CloseAndFlush();
+    await Log.CloseAndFlushAsync();
 }
 ```
 
