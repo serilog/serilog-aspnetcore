@@ -64,6 +64,29 @@ public class SerilogWebHostBuilderExtensionsTests : IClassFixture<SerilogWebAppl
         Assert.True(completionEvent.Properties.ContainsKey("Elapsed"));
     }
 
+    
+    [Fact]
+    public async Task RequestLoggingMiddlewareShouldEnrichWithElapsed()
+    {
+        var (sink, web) = Setup(options =>
+        {
+            options.AddElapsedToHttpContext = true;
+            options.EnrichDiagnosticContext += (diagnosticContext, httpContext) =>
+            {
+                var elapsedValue = (double)(httpContext.Items[RequestLoggingOptions.HttpContextItemsElapsedKey] ?? -0.1);
+                diagnosticContext.Set("ElapsedValue", elapsedValue);
+            };
+        });
+
+        await web.CreateClient().GetAsync("/resource");
+
+        Assert.NotEmpty(sink.Writes);
+
+        var completionEvent = sink.Writes.First(logEvent => Matching.FromSource<RequestLoggingMiddleware>()(logEvent));
+
+        Assert.True((double)completionEvent.Properties["ElapsedValue"].LiteralValue()! > 0);
+    }
+    
     [Fact]
     public async Task RequestLoggingMiddlewareShouldEnrichWithCustomisedProperties()
     {

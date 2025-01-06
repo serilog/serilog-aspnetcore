@@ -26,7 +26,7 @@ public class RequestLoggingOptions
 {
     const string DefaultRequestCompletionMessageTemplate =
         "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
-
+    
     static LogEventLevel DefaultGetLevel(HttpContext ctx, double _, Exception? ex) =>
         ex != null
             ? LogEventLevel.Error
@@ -41,6 +41,11 @@ public class RequestLoggingOptions
             new LogEventProperty("StatusCode", new ScalarValue(statusCode)),
             new LogEventProperty("Elapsed", new ScalarValue(elapsedMs))
         ];
+    
+    /// <summary>
+    /// The key used to add the ElapsedMs value to <see cref="HttpContext"/> <c>Items</c> collection
+    /// </summary>
+    public const string HttpContextItemsElapsedKey = "Serilog.AspNetCore.ElapsedMs";
 
     /// <summary>
     /// Gets or sets the message template. The default value is
@@ -80,6 +85,12 @@ public class RequestLoggingOptions
     /// that is attached to request log events. The default is <c>false</c>.
     /// </summary>
     public bool IncludeQueryInRequestPath { get; set; }
+    
+    
+    /// <summary>
+    /// Add the elapsed millisecond value to the <see cref="HttpContext"/> <c>Items</c> collection before invoking <c>EnrichDiagnosticContext</c>
+    /// </summary>
+    public bool AddElapsedToHttpContext { get; set; }
 
     /// <summary>
     /// A function to specify the values of the MessageTemplateProperties.

@@ -32,6 +32,7 @@ class RequestLoggingMiddleware
     readonly Func<HttpContext, string, double, int, IEnumerable<LogEventProperty>> _getMessageTemplateProperties;
     readonly ILogger? _logger;
     readonly bool _includeQueryInRequestPath;
+    readonly bool _addElapsedToHttpContext;
     static readonly LogEventProperty[] NoProperties = [];
 
     public RequestLoggingMiddleware(RequestDelegate next, DiagnosticContext diagnosticContext, RequestLoggingOptions options)
@@ -45,6 +46,7 @@ class RequestLoggingMiddleware
         _messageTemplate = new MessageTemplateParser().Parse(options.MessageTemplate);
         _logger = options.Logger?.ForContext<RequestLoggingMiddleware>();
         _includeQueryInRequestPath = options.IncludeQueryInRequestPath;
+        _addElapsedToHttpContext = options.AddElapsedToHttpContext;
         _getMessageTemplateProperties = options.GetMessageTemplateProperties;
     }
 
@@ -82,6 +84,11 @@ class RequestLoggingMiddleware
 
         if (!logger.IsEnabled(level)) return false;
 
+        if (_addElapsedToHttpContext)
+        {
+            httpContext.Items.Add(RequestLoggingOptions.HttpContextItemsElapsedKey, elapsedMs);
+        }
+        
         _enrichDiagnosticContext?.Invoke(_diagnosticContext, httpContext);
 
         if (!collector.TryComplete(out var collectedProperties, out var collectedException))
