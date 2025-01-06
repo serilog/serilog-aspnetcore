@@ -63,7 +63,6 @@ public class SerilogWebHostBuilderExtensionsTests : IClassFixture<SerilogWebAppl
         Assert.Equal("GET", completionEvent.Properties["RequestMethod"].LiteralValue());
         Assert.True(completionEvent.Properties.ContainsKey("Elapsed"));
     }
-
     
     [Fact]
     public async Task RequestLoggingMiddlewareShouldEnrichWithElapsed()

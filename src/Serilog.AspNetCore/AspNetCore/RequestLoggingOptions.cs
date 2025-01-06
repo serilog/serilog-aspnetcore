@@ -26,7 +26,7 @@ public class RequestLoggingOptions
 {
     const string DefaultRequestCompletionMessageTemplate =
         "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
-    
+
     static LogEventLevel DefaultGetLevel(HttpContext ctx, double _, Exception? ex) =>
         ex != null
             ? LogEventLevel.Error
@@ -85,8 +85,7 @@ public class RequestLoggingOptions
     /// that is attached to request log events. The default is <c>false</c>.
     /// </summary>
     public bool IncludeQueryInRequestPath { get; set; }
-    
-    
+
     /// <summary>
     /// Add the elapsed millisecond value to the <see cref="HttpContext"/> <c>Items</c> collection before invoking <c>EnrichDiagnosticContext</c>
     /// </summary>
