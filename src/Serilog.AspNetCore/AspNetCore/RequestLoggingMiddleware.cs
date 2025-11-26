@@ -17,7 +17,9 @@ using Microsoft.AspNetCore.Http.Features;
 using Serilog.Events;
 using Serilog.Extensions.Hosting;
 using Serilog.Parsing;
+using System.Buffers;
 using System.Diagnostics;
+using System.Text;
 
 namespace Serilog.AspNetCore;
 
@@ -32,6 +34,7 @@ class RequestLoggingMiddleware
     readonly Func<HttpContext, string, double, int, IEnumerable<LogEventProperty>> _getMessageTemplateProperties;
     readonly ILogger? _logger;
     readonly bool _includeQueryInRequestPath;
+    readonly RequestLoggingOptions _options;
     static readonly LogEventProperty[] NoProperties = [];
 
     public RequestLoggingMiddleware(RequestDelegate next, DiagnosticContext diagnosticContext, RequestLoggingOptions options)
@@ -39,6 +42,7 @@ class RequestLoggingMiddleware
         if (options == null) throw new ArgumentNullException(nameof(options));
         _next = next ?? throw new ArgumentNullException(nameof(next));
         _diagnosticContext = diagnosticContext ?? throw new ArgumentNullException(nameof(diagnosticContext));
+        _options = options;
 
         _getLevel = options.GetLevel;
         _enrichDiagnosticContext = options.EnrichDiagnosticContext;
@@ -58,6 +62,7 @@ class RequestLoggingMiddleware
         var collector = _diagnosticContext.BeginCollection();
         try
         {
+            await CollectRequestBody(httpContext, collector, _options);
             await _next(httpContext);
             var elapsedMs = GetElapsedMilliseconds(start, Stopwatch.GetTimestamp());
             var statusCode = httpContext.Response.StatusCode;
@@ -130,4 +135,104 @@ class RequestLoggingMiddleware
 
         return requestPath!;
     }
+
+    private async static Task CollectRequestBody(HttpContext httpContext, DiagnosticContextCollector collector, RequestLoggingOptions options)
+    {
+        // Check if we should include the request body
+        if (!options.IncludeRequestBody)
+            return;
+
+        HttpRequest request = httpContext.Request;
+
+        // Check if the Content-Type matches the specified types
+        if (!IsContentTypeMatch(request.ContentType, options.RequestBodyContentTypes))
+            return;
+
+        // Check if the Content-Length exceeds the maximum allowed length
+        if (options.RequestBodyContentMaxLength.HasValue &&
+            request.ContentLength.HasValue &&
+            request.ContentLength.Value > options.RequestBodyContentMaxLength.Value)
+        {
+            return;
+        }
+
+        string bodyAsText;
+
+#if NET5_0_OR_GREATER
+        // Enable buffering to allow multiple reads of the request body
+        request.EnableBuffering();
+
+        // read the body as text
+        var body = await request.BodyReader.ReadAsync();
+        bodyAsText = Encoding.UTF8.GetString(body.Buffer.ToArray());
+#else
+        // backward compatibility for .NET Standard 2.0 and .NET Framework
+        bodyAsText = await ReadBodyAsString(request);
+#endif
+
+        // Reset the request body stream position for further processing
+        request.Body.Position = 0;
+
+        var property = new LogEventProperty("RequestBody", new ScalarValue(bodyAsText));
+        collector.AddOrUpdate(property);
+    }
+
+    private static bool IsContentTypeMatch(string? currentContentType, List<string> contentTypesToMatch)
+    {
+        // Extract the base MIME type from the current ContentType (ignore parameters like charset, boundary, etc.)
+        var currentMimeType = ExtractBaseMimeType(currentContentType!);
+        if (string.IsNullOrWhiteSpace(currentMimeType) || contentTypesToMatch == null || contentTypesToMatch.Count == 0)
+            return false;
+
+        // Check if the base MIME type matches any in the list
+        foreach (var contentTypeToMatch in contentTypesToMatch)
+        {
+            var matchMimeType = ExtractBaseMimeType(contentTypeToMatch);
+            if (string.Equals(currentMimeType, matchMimeType, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static string? ExtractBaseMimeType(string? contentType)
+    {
+        if (contentType == null || string.IsNullOrWhiteSpace(contentType))
+            return contentType;
+
+        // Split on semicolon to remove parameters (e.g., "text/html; charset=utf-8" -> "text/html")
+        int semicolonIndex = contentType.IndexOf(';');
+        string baseMimeType = semicolonIndex >= 0
+            ? contentType.Substring(0, semicolonIndex)
+            : contentType;
+
+        return baseMimeType.Trim();
+    }
+
+#if !NET5_0_OR_GREATER
+    private static async Task<string> ReadBodyAsString(HttpRequest request)
+    {
+        if (request == null)
+            throw new ArgumentNullException(nameof(request));
+
+        // Read the body as bytes first
+        byte[] bodyBytes;
+        using (var memoryStream = new MemoryStream())
+        {
+            await request.Body.CopyToAsync(memoryStream);
+            bodyBytes = memoryStream.ToArray();
+        }
+
+        // Convert bytes to string
+        string bodyAsText = Encoding.UTF8.GetString(bodyBytes);
+
+        // Only replace the request body stream if it doesn't support seeking
+        if (!request.Body.CanSeek)
+            request.Body = new MemoryStream(bodyBytes);
+
+        request.Body.Position = 0;
+
+        return bodyAsText;
+    }
+#endif
 }

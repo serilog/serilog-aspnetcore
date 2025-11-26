@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Serilog.Filters;
 using Serilog.AspNetCore.Tests.Support;
 using Serilog.Events;
+using System.Net.Http.Json;
 
 // Newer frameworks provide IHostBuilder
 #pragma warning disable CS0618
@@ -62,6 +63,7 @@ public class SerilogWebHostBuilderExtensionsTests : IClassFixture<SerilogWebAppl
         Assert.Equal(200, completionEvent.Properties["StatusCode"].LiteralValue());
         Assert.Equal("GET", completionEvent.Properties["RequestMethod"].LiteralValue());
         Assert.True(completionEvent.Properties.ContainsKey("Elapsed"));
+        Assert.False(completionEvent.Properties.ContainsKey("RequestBody"));
     }
 
     [Fact]
@@ -190,5 +192,32 @@ public class SerilogWebHostBuilderExtensionsTests : IClassFixture<SerilogWebAppl
         var web = Setup(logger, true, configureOptions, actionCallback);
 
         return (sink, web);
+    }
+
+    [Fact]
+    public async Task RequestLoggingMiddlewareShouldIncludeBody()
+    {
+        var (sink, web) = Setup(options =>
+        {
+            options.EnrichDiagnosticContext += (diagnosticContext, _) =>
+            {
+                diagnosticContext.Set("SomeInteger", 42);
+            };
+            options.IncludeRequestBody = true;
+        });
+
+        await web.CreateClient().PostAsJsonAsync("/post", new { Name = "Test" });
+
+        Assert.NotEmpty(sink.Writes);
+
+        var completionEvent = sink.Writes.First(logEvent => Matching.FromSource<RequestLoggingMiddleware>()(logEvent));
+
+        Assert.Equal(42, completionEvent.Properties["SomeInteger"].LiteralValue());
+        Assert.Equal("string", completionEvent.Properties["SomeString"].LiteralValue());
+        Assert.Equal("/post", completionEvent.Properties["RequestPath"].LiteralValue());
+        Assert.Equal(200, completionEvent.Properties["StatusCode"].LiteralValue());
+        Assert.Equal("POST", completionEvent.Properties["RequestMethod"].LiteralValue());
+        Assert.Equal("{\"name\":\"Test\"}", completionEvent.Properties["RequestBody"].LiteralValue());
+        Assert.True(completionEvent.Properties.ContainsKey("Elapsed"));
     }
 }

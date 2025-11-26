@@ -82,6 +82,33 @@ public class RequestLoggingOptions
     public bool IncludeQueryInRequestPath { get; set; }
 
     /// <summary>
+    /// Include the request body in the log event. The default is <c>false</c>.
+    /// </summary>
+    /// <remarks>
+    /// If set to <c>true</c>, the request body will be buffered and read in order to include it
+    /// in the log event. This may have performance implications and may not be suitable for large request bodies.
+    /// </remarks>
+    public bool IncludeRequestBody { get; set; }
+
+    /// <summary>
+    /// The content types for which the request body should be included in the log event.
+    /// The default is <c>application/json</c>.
+    /// </summary>
+    /// <remarks>
+    /// Only used if <see cref="IncludeRequestBody"/> is set to <c>true</c>.
+    /// </remarks>
+    public List<string> RequestBodyContentTypes { get; set; } = ["application/json"];
+
+    /// <summary>
+    /// The maximum length of the request body content to include in the log event.
+    /// The default is 8 KB. Set to <c>null</c> for no limit.
+    /// </summary>
+    /// <remarks>
+    /// Only used if <see cref="IncludeRequestBody"/> is set to <c>true</c>.
+    /// </remarks>
+    public long? RequestBodyContentMaxLength { get; set; } = 8 * 1024; // 8 KB
+
+    /// <summary>
     /// A function to specify the values of the MessageTemplateProperties.
     /// </summary>
     public Func<HttpContext, string, double, int, IEnumerable<LogEventProperty>> GetMessageTemplateProperties { get; set; }
