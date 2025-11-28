@@ -134,7 +134,7 @@ public class SerilogWebHostBuilderExtensionsTests : IClassFixture<SerilogWebAppl
         Assert.Same(unhandledException, thrownException);
     }
 
-    WebApplicationFactory<TestStartup> Setup(
+    WebApplicationFactory<TestEntryPoint> Setup(
         ILogger logger,
         bool dispose,
         Action<RequestLoggingOptions>? configureOptions = null,
@@ -177,7 +177,7 @@ public class SerilogWebHostBuilderExtensionsTests : IClassFixture<SerilogWebAppl
         Assert.NotNull(completionEvent.SpanId);
     }
 
-    (SerilogSink, WebApplicationFactory<TestStartup>) Setup(
+    (SerilogSink, WebApplicationFactory<TestEntryPoint>) Setup(
         Action<RequestLoggingOptions>? configureOptions = null,
         Action<HttpContext>? actionCallback = null)
     {
