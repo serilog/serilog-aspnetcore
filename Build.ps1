@@ -56,24 +56,6 @@ try {
 
         Pop-Location
     }
-
-    if ($env:NUGET_API_KEY) {
-        # GitHub Actions will only supply this to branch builds and not PRs. We publish
-        # builds from any branch this action targets (i.e. main and dev).
-
-        Write-Output "build: Publishing NuGet packages"
-
-        foreach ($nupkg in Get-ChildItem artifacts/*.nupkg) {
-            & dotnet nuget push -k $env:NUGET_API_KEY -s https://api.nuget.org/v3/index.json "$nupkg"
-            if($LASTEXITCODE -ne 0) { throw "Publishing failed" }
-        }
-
-        if (!($suffix)) {
-            Write-Output "build: Creating release for version $versionPrefix"
-
-            iex "gh release create v$versionPrefix --title v$versionPrefix --generate-notes $(get-item ./artifacts/*.nupkg) $(get-item ./artifacts/*.snupkg)"
-        }
-    }
 } finally {
     Pop-Location
 }

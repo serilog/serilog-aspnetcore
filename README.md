@@ -1,4 +1,4 @@
-# Serilog.AspNetCore&nbsp;[![Build status](https://github.com/serilog/serilog-aspnetcore/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/serilog/serilog-aspnetcore/actions)&nbsp;[![NuGet Version](http://img.shields.io/nuget/v/Serilog.AspNetCore.svg?style=flat)](https://www.nuget.org/packages/Serilog.AspNetCore/)
+# Serilog.AspNetCore&nbsp;[![Build status](https://github.com/serilog/serilog-aspnetcore/actions/workflows/publish.yml/badge.svg?branch=dev)](https://github.com/serilog/serilog-aspnetcore/actions)&nbsp;[![NuGet Version](http://img.shields.io/nuget/v/Serilog.AspNetCore.svg?style=flat)](https://www.nuget.org/packages/Serilog.AspNetCore/)
 
 Serilog logging for ASP.NET Core. This package routes ASP.NET Core log messages through Serilog, so you can get information about ASP.NET's internal operations written to the same Serilog sinks as your application events.
 
