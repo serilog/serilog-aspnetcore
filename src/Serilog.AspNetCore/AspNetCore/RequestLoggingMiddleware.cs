@@ -28,6 +28,7 @@ class RequestLoggingMiddleware
     readonly DiagnosticContext _diagnosticContext;
     readonly MessageTemplate _messageTemplate;
     readonly Action<IDiagnosticContext, HttpContext>? _enrichDiagnosticContext;
+    readonly Func<IDiagnosticContext, HttpContext, Task>? _enrichDiagnosticContextAsync;
     readonly Func<HttpContext, double, Exception?, LogEventLevel> _getLevel;
     readonly Func<HttpContext, string, double, int, IEnumerable<LogEventProperty>> _getMessageTemplateProperties;
     readonly ILogger? _logger;
@@ -42,6 +43,7 @@ class RequestLoggingMiddleware
 
         _getLevel = options.GetLevel;
         _enrichDiagnosticContext = options.EnrichDiagnosticContext;
+        _enrichDiagnosticContextAsync = options.EnrichDiagnosticContextAsync;
         _messageTemplate = new MessageTemplateParser().Parse(options.MessageTemplate);
         _logger = options.Logger?.ForContext<RequestLoggingMiddleware>();
         _includeQueryInRequestPath = options.IncludeQueryInRequestPath;
@@ -54,31 +56,58 @@ class RequestLoggingMiddleware
         if (httpContext == null) throw new ArgumentNullException(nameof(httpContext));
 
         var start = Stopwatch.GetTimestamp();
-
         var collector = _diagnosticContext.BeginCollection();
+        var logger = _logger;
+        var level = LogEventLevel.Information; // only used if _getLevel throws an exception
+        double elapsedMs;
+
         try
         {
             await _next(httpContext);
-            var elapsedMs = GetElapsedMilliseconds(start, Stopwatch.GetTimestamp());
+            elapsedMs = GetElapsedMilliseconds(start, Stopwatch.GetTimestamp());
             var statusCode = httpContext.Response.StatusCode;
-            LogCompletion(httpContext, collector, statusCode, elapsedMs, null);
+            logger = _logger ?? Log.ForContext<RequestLoggingMiddleware>();
+            level = _getLevel(httpContext, elapsedMs, null);
+            LogCompletion(httpContext, collector, statusCode, elapsedMs, logger, level, null);
         }
         catch (Exception ex)
             // Never caught, because `LogCompletion()` returns false. This ensures e.g. the developer exception page is still
             // shown, although it does also mean we see a duplicate "unhandled exception" event from ASP.NET Core.
-            when (LogCompletion(httpContext, collector, 500, GetElapsedMilliseconds(start, Stopwatch.GetTimestamp()), ex))
+            // The elapsedMs is required for calculating the level and for LogCompletion.
+            // The level is required in the finally block.
+            when ((elapsedMs = GetElapsedMilliseconds(start, Stopwatch.GetTimestamp())) >= 0
+                  && (level = _getLevel(httpContext, elapsedMs, ex)) >= 0
+                  && LogCompletion(httpContext, collector, 500, elapsedMs, logger, level, ex))
         {
         }
         finally
         {
+            await CallEnrichDiagnosticContextAsync(httpContext, logger, level);
             collector.Dispose();
         }
     }
 
-    bool LogCompletion(HttpContext httpContext, DiagnosticContextCollector collector, int statusCode, double elapsedMs, Exception? ex)
+    async Task CallEnrichDiagnosticContextAsync(HttpContext httpContext, ILogger? logger, LogEventLevel level)
     {
-        var logger = _logger ?? Log.ForContext<RequestLoggingMiddleware>();
-        var level = _getLevel(httpContext, elapsedMs, ex);
+        try
+        {
+            logger ??= Log.ForContext<RequestLoggingMiddleware>();
+            if (!logger.IsEnabled(level)) return;
+
+            if (_enrichDiagnosticContextAsync != null)
+            {
+                await _enrichDiagnosticContextAsync.Invoke(_diagnosticContext, httpContext);
+            }
+        }
+        catch
+        {
+            // we want to avoid throwing exceptions in the logging pipeline, so we just swallow them here
+        }
+    }
+
+    bool LogCompletion(HttpContext httpContext, DiagnosticContextCollector collector, int statusCode, double elapsedMs, ILogger? logger, LogEventLevel level, Exception? ex)
+    {
+        logger ??= Log.ForContext<RequestLoggingMiddleware>();
 
         if (!logger.IsEnabled(level)) return false;
 
