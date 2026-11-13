@@ -1,0 +1,66 @@
+# Publishes packages to NuGet.org using trusted publishing. The NuGet.org trusted publishing policy
+# identifies this workflow by file name; if this file is renamed, the policy must be updated, and the
+# incrementing run number used to version pre-release packages will be reset.
+
+name: Publish
+
+on:
+  push:
+    branches: [ "dev", "main" ]
+
+env:
+  CI_BUILD_NUMBER_BASE: ${{ github.run_number }}
+  CI_TARGET_BRANCH: ${{ github.ref_name }}
+
+jobs:
+  publish:
+
+    # The build must run on Windows so that .NET Framework targets can be built and tested.
+    runs-on: windows-latest
+
+    permissions:
+      # Required for NuGet.org trusted publishing.
+      id-token: write
+      # Required for creating GitHub releases.
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+      - name: Compute build number
+        shell: bash
+        run: |
+          echo "CI_BUILD_NUMBER=$(($CI_BUILD_NUMBER_BASE+2500))" >> $GITHUB_ENV
+      - name: Build
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: true
+        shell: pwsh
+        run: |
+          ./Build.ps1
+      - name: Log in to NuGet
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+      - name: Push to NuGet
+        shell: pwsh
+        run: |
+          $packages = @(Get-ChildItem ./artifacts/*.nupkg)
+          if ($packages.Count -eq 0) { throw "No packages found in ./artifacts" }
+          foreach ($nupkg in $packages) {
+            dotnet nuget push "$nupkg" --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json
+            if ($LASTEXITCODE -ne 0) { throw "Publishing failed" }
+          }
+      - name: Create GitHub release
+        # Builds from `main` are versioned without a pre-release suffix; see `Build.ps1`.
+        if: github.ref_name == 'main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          $version = ([Xml] (Get-Content ./Directory.Version.props)).Project.PropertyGroup.VersionPrefix
+          gh release create "v$version" --title "v$version" --target "${{ github.sha }}" --generate-notes (Get-Item ./artifacts/*.nupkg, ./artifacts/*.snupkg)
+          if ($LASTEXITCODE -ne 0) { throw "Release creation failed" }
