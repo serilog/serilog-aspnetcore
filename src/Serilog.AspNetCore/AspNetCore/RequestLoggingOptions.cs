@@ -68,6 +68,14 @@ public class RequestLoggingOptions
     /// A callback that can be used to set additional properties on the request completion event.
     /// </summary>
     public Action<IDiagnosticContext, HttpContext>? EnrichDiagnosticContext { get; set; }
+    
+    /// <summary>
+    /// An async callback that can be used to set additional properties on the request completion event.
+    /// Can be used in addition to <see cref="EnrichDiagnosticContext"/> if you need async calls (e.g. for getting the
+    /// request body) and will be called before the synchronous method.
+    /// </summary>
+    /// <remarks>Execution is not guaranteed if an exception occurs during finalizing the diagnostic entries.</remarks>
+    public Func<IDiagnosticContext, HttpContext, Task>? EnrichDiagnosticContextAsync { get; set; }
 
     /// <summary>
     /// The logger through which request completion events will be logged. The default is to use the
