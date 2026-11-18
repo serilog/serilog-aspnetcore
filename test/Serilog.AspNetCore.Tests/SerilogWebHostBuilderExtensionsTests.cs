@@ -134,6 +134,68 @@ public class SerilogWebHostBuilderExtensionsTests : IClassFixture<SerilogWebAppl
         Assert.Same(unhandledException, thrownException);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RequestLoggingMiddlewareShouldNotEnrichWithExceptionWhenRequestIsAborted(bool useIOException)
+    {
+        Exception abortedException = useIOException
+            ? new IOException("Request aborted")
+            : new OperationCanceledException("Request aborted");
+        var (sink, web) = Setup(actionCallback: context =>
+        {
+            context.RequestAborted = new CancellationToken(canceled: true);
+            throw abortedException;
+        });
+
+        Func<Task> act = () => web.CreateClient().GetAsync("/resource");
+
+        var thrownException = await Assert.ThrowsAnyAsync<Exception>(act);
+        var completionEvent = sink.Writes.First(logEvent => Matching.FromSource<RequestLoggingMiddleware>()(logEvent));
+        Assert.Null(completionEvent.Exception);
+        Assert.Same(abortedException, thrownException);
+        Assert.Equal(LogEventLevel.Error, completionEvent.Level);
+    }
+
+    [Fact]
+    public async Task RequestLoggingMiddlewareShouldEnrichWithCancellationExceptionWhenRequestIsNotAborted()
+    {
+        var cancellationException = new OperationCanceledException("Request canceled");
+        var (sink, web) = Setup(actionCallback: _ => throw cancellationException);
+
+        Func<Task> act = () => web.CreateClient().GetAsync("/resource");
+
+        var thrownException = await Assert.ThrowsAsync<OperationCanceledException>(act);
+        var completionEvent = sink.Writes.First(logEvent => Matching.FromSource<RequestLoggingMiddleware>()(logEvent));
+        Assert.Same(cancellationException, completionEvent.Exception);
+        Assert.Same(cancellationException, thrownException);
+    }
+
+    [Fact]
+    public async Task RequestLoggingMiddlewareShouldPreserveCollectedExceptionWhenRequestIsAborted()
+    {
+        var collectedException = new Exception("Exception set in diagnostic context");
+        var escapingException = new OperationCanceledException("Request aborted");
+        var (sink, web) = Setup(options =>
+        {
+            options.EnrichDiagnosticContext += (diagnosticContext, _) =>
+            {
+                diagnosticContext.SetException(collectedException);
+            };
+        }, actionCallback: context =>
+        {
+            context.RequestAborted = new CancellationToken(canceled: true);
+            throw escapingException;
+        });
+
+        Func<Task> act = () => web.CreateClient().GetAsync("/resource");
+
+        var thrownException = await Assert.ThrowsAsync<OperationCanceledException>(act);
+        var completionEvent = sink.Writes.First(logEvent => Matching.FromSource<RequestLoggingMiddleware>()(logEvent));
+        Assert.Same(collectedException, completionEvent.Exception);
+        Assert.Same(escapingException, thrownException);
+    }
+
     WebApplicationFactory<TestEntryPoint> Setup(
         ILogger logger,
         bool dispose,

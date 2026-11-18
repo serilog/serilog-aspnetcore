@@ -94,10 +94,16 @@ class RequestLoggingMiddleware
             (activity.TraceId, activity.SpanId) :
             (default(ActivityTraceId), default(ActivitySpanId));
 
+        var isRequestAborted =
+            (ex is OperationCanceledException || ex is IOException) &&
+            httpContext.RequestAborted.IsCancellationRequested;
+
+        var eventException = isRequestAborted ? collectedException : ex ?? collectedException;
+
         var evt = new LogEvent(
             DateTimeOffset.Now,
             level,
-            ex ?? collectedException,
+            eventException,
             _messageTemplate,
             properties,
             traceId,
